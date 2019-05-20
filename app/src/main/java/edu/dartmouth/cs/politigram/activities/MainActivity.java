@@ -18,6 +18,7 @@ import edu.dartmouth.cs.politigram.fragments.ClassifierFragment;
 import edu.dartmouth.cs.politigram.fragments.GameFragment;
 import edu.dartmouth.cs.politigram.fragments.MainFragment;
 
+//test
 public class MainActivity extends AppCompatActivity {
 
     TextView nameuser, walletuser, review, network, plugins, myapps, mainmenus,
