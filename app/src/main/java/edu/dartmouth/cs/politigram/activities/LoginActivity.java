@@ -10,6 +10,7 @@ import android.widget.TextView;
 import edu.dartmouth.cs.politigram.R;
 
 
+// Handles credentials validation with Firebase Authentication for Politigram user accounts.
 public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = "LoginActivity";
