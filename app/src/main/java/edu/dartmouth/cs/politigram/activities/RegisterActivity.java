@@ -12,6 +12,7 @@ import android.widget.TextView;
 import edu.dartmouth.cs.politigram.R;
 
 
+// Handles new user registration.
 public class RegisterActivity extends AppCompatActivity {
     private static final String TAG = "RegisterActivity";
 
