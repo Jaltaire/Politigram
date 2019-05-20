@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="0dp"
+        android:paddingLeft="24dp"
+        android:paddingRight="24dp"
+        android:focusableInTouchMode="true" >
+
+        <TextView
+            android:id="@+id/login_title_text_view"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="10pt"
+            android:paddingBottom="10pt"
+            android:text="@string/register_title"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:textSize="20sp"
+            android:textColor="#FFFFFF"/>
+
+        <android.support.design.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="10pt">
+
+            <android.support.v7.widget.CardView
+                android:id="@+id/profile_picture_card_view"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:layout_gravity="center_horizontal"
+                app:cardCornerRadius="50dp"
+                app:cardPreventCornerOverlap="false" >
+
+                <ImageView
+                    android:id="@+id/profile_picture_image_view"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_user_profile" />
+
+            </android.support.v7.widget.CardView>
+
+            <android.support.design.widget.FloatingActionButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_anchor="@+id/profile_picture_image_view"
+                app:layout_anchorGravity="bottom|right|end"
+                app:fabSize="mini"
+                android:src="@android:drawable/ic_menu_camera" />
+
+        </android.support.design.widget.CoordinatorLayout>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawablePadding="10dp"
+            android:id="@+id/register_username_edit_text"
+            android:drawableLeft="@drawable/ic_person_outline_white_24dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginStart="20dp"
+            android:hint="USERNAME"
+            android:padding="20dp"
+            android:textSize="14sp"
+            android:textColorHint="#FFFFFF"
+            android:inputType="text"/>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawablePadding="10dp"
+            android:id="@+id/register_email_edit_text"
+            android:drawableLeft="@drawable/ic_mail_outline_white_24dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginStart="20dp"
+            android:hint="EMAIL"
+            android:padding="20dp"
+            android:textSize="14sp"
+            android:textColorHint="#FFFFFF"
+            android:inputType="textEmailAddress"/>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawablePadding="10dp"
+            android:id="@+id/login_password_edit_text"
+            android:drawableLeft="@drawable/ic_lock_outline_white_24dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginStart="20dp"
+            android:hint="PASSWORD"
+            android:padding="20dp"
+            android:textSize="14sp"
+            android:textColorHint="#FFFFFF"
+            android:inputType="textPassword"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/political_leaning_label_text_view"
+            android:layout_marginEnd="20dp"
+            android:layout_marginStart="20dp"
+            android:paddingTop="30dp"
+            android:paddingBottom="4dp"
+            android:gravity="center"
+            android:textSize="14sp"
+            android:text="POLITICAL LEANING"
+            android:textColor="#FFFFFF"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingBottom="12dp">
+
+            <SeekBar
+                android:id="@+id/political_leaning_seek_bar"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="20dp"
+                android:layout_marginStart="20dp"
+                android:gravity="center"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:max="100"
+                android:progress="50" />
+
+            <TextView
+                android:id="@+id/political_leaning_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/political_leaning_seek_bar"
+                android:layout_marginTop="2dp"
+                android:gravity="center"
+                android:layout_centerHorizontal="true"
+                android:paddingTop="4pt"
+                android:text="CENTER"
+                android:textAlignment="center"
+                android:textSize="12sp" />
+
+        </RelativeLayout>
+
+        <!-- Signup Button -->
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/btn_signup"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginStart="20dp"
+            android:padding="12dp"
+            android:text="Create Account" />
+
+        <TextView android:id="@+id/login_text_view"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:text="@string/register_sign_in_text"
+            android:gravity="center"
+            android:textSize="16sp"/>
+
+    </LinearLayout>
+</ScrollView>

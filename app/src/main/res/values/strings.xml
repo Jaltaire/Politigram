@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Politigram</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="login_sign_up_text">Don\'t have an account? <b>Sign up.</b></string>
+    <string name="register_sign_in_text">Already have an account? <b>Sign in.</b></string>
+    <string name="register_title">REGISTER</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
