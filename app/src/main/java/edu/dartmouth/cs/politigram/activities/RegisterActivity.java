@@ -10,6 +10,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -39,6 +40,7 @@ public class RegisterActivity extends AppCompatActivity {
     private boolean mValidEmail;
     private boolean mValidPassword;
     private TextView mLoginTextView;
+    private Button mRegisterBtn;
 
     
     @Override
@@ -50,6 +52,8 @@ public class RegisterActivity extends AppCompatActivity {
         mPoliticalLeaningTextView = findViewById(R.id.political_leaning_text_view);
 
         mLoginTextView = findViewById(R.id.login_text_view);
+        mRegisterBtn = findViewById(R.id.btn_signup);
+
 
         mUsername = findViewById(R.id.register_username_edit_text);
         mEmail = findViewById(R.id.register_email_edit_text);
@@ -65,7 +69,7 @@ public class RegisterActivity extends AppCompatActivity {
                     double thumbX = mPoliticalLeaningSeekBar.getThumb().getBounds().exactCenterX();
                     handlePoliticalLeanText(progressValue, thumbX);
 
-                    int backgroundColor = interpolateColor(Color.rgb(63,63,228), Color.rgb(228,63,63), (0.5f * progressValue/100f));
+                    int backgroundColor = interpolateColor(Color.rgb(63, 63, 228), Color.rgb(228, 63, 63), (0.5f * progressValue / 100f));
                     setActivityBackgroundColor(backgroundColor);
                 }
                 //int middle = this.getHeight()/2;
@@ -80,9 +84,9 @@ public class RegisterActivity extends AppCompatActivity {
             }
         });
 
-        mLoginTextView.setOnClickListener(new View.OnClickListener() {
+        mRegisterBtn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(View v) {
                 if (confirmValidation()) {
 
                     final FirebaseAuth mAuth = FirebaseAuth.getInstance();
@@ -94,6 +98,9 @@ public class RegisterActivity extends AppCompatActivity {
                             Log.d("register", "complete");
                             if (task.isSuccessful()) {
                                 //Sign in success, update UI with the signed-in user's information
+                                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                                startActivityForResult(intent, LoginActivity.REQUEST_CREDENTIALS);
+                                finish();
                                 Log.d("0", "createUserWithEmail:success");
                                 Toast.makeText(RegisterActivity.this, "Authentication worked.",
                                         Toast.LENGTH_LONG).show();
@@ -107,16 +114,19 @@ public class RegisterActivity extends AppCompatActivity {
                             }
                         }
                     });
-
-                    Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                    startActivityForResult(intent, LoginActivity.REQUEST_CREDENTIALS);
-                    finish();
-
                 }
-
             }
         });
 
+
+        mLoginTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                startActivityForResult(intent, LoginActivity.REQUEST_CREDENTIALS);
+                finish();
+            }
+        });
     }
 
     private void handlePoliticalLeanText(int progress, double thumbX) {
@@ -191,7 +201,7 @@ public class RegisterActivity extends AppCompatActivity {
         } else mEmail.setError("This field is required");
 
         if (mPassword.getText().length() > 0) {
-            if (mPassword.getText().length() > 7) {
+            if (mPassword.getText().length() > 5) {
                 mValidPassword = true;
             } else mPassword.setError("Password must be at least 6 characters");
         } else mPassword.setError("This field is required");
