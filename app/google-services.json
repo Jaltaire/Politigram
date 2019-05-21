@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "29372243996",
+    "firebase_url": "https://politigram-f9d7a.firebaseio.com",
+    "project_id": "politigram-f9d7a",
+    "storage_bucket": "politigram-f9d7a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:29372243996:android:20e485ed5bbefd50",
+        "android_client_info": {
+          "package_name": "edu.dartmouth.cs.politigram"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "29372243996-6vrsdb9uuujoj8l6cq15uphl4quo4u13.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCICaMagrx3WnZQliSA5vAzVzTTAfUWH5s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "29372243996-6vrsdb9uuujoj8l6cq15uphl4quo4u13.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
