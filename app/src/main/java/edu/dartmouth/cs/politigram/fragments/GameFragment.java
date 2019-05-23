@@ -43,7 +43,7 @@ public class GameFragment extends Fragment {
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         FirebaseUser User = mAuth.getCurrentUser();
         String mUserId = User.getUid();
-//        database1.child("user_" + mUserId).child("game_results")
+        database1.child("user_" + mUserId).child("game_results").push().setValue(gameObject);
 
 
     }
