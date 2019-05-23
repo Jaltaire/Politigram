@@ -1,18 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="8dbebb62-52fc-4aeb-a150-4957ed5157ed" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../app/src/main/java/edu/dartmouth/cs/politigram/activities/ClassifierResultActivity.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../app/src/main/res/layout/activity_classifier_result.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../.idea/caches/build_file_checksums.ser" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/caches/build_file_checksums.ser" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/app.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../app/app.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/main/AndroidManifest.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/main/java/edu/dartmouth/cs/politigram/activities/ClassificationResultActivity.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/main/java/edu/dartmouth/cs/politigram/fragments/ClassifierFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/main/java/edu/dartmouth/cs/politigram/fragments/ClassifierFragment.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/main/res/layout/activity_classification_result.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/main/res/values/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/main/res/values/strings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="8dbebb62-52fc-4aeb-a150-4957ed5157ed" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
