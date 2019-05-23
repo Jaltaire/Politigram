@@ -2,10 +2,13 @@ package edu.dartmouth.cs.politigram.activities;
 
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
@@ -27,19 +30,22 @@ import edu.dartmouth.cs.politigram.R;
 import edu.dartmouth.cs.politigram.fragments.ClassifierFragment;
 import edu.dartmouth.cs.politigram.fragments.GameFragment;
 import edu.dartmouth.cs.politigram.fragments.MainFragment;
+import edu.dartmouth.cs.politigram.utils.PoliticalLeaningConversion;
 
 //test
 public class MainActivity extends AppCompatActivity {
 
-    TextView nameuser, walletuser, review, network, plugins, myapps, mainmenus,
-            pagetitle, pagesubtitle;
+    ImageView mProfilePictureImageView;
 
-    Button btnguide;
+    TextView mUsername;
+    TextView mPoliticalLeaning;
+
     Animation atg, atgtwo, atgthree;
-    ImageView imageView3;
 
     private LinearLayout mClassifierLinearLayout;
     private LinearLayout mGameLinearLayout;
+    private LinearLayout mLeaderboardLinearLayout;
+    private LinearLayout mSettingsLinearLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,14 +60,9 @@ public class MainActivity extends AppCompatActivity {
         atgtwo = AnimationUtils.loadAnimation(this, R.anim.atgtwo);
         atgthree = AnimationUtils.loadAnimation(this, R.anim.atgthree);
 
-        nameuser = findViewById(R.id.nameuser);
-        walletuser = findViewById(R.id.walletuser);
-
-        review = findViewById(R.id.review);
-        network = findViewById(R.id.network);
-        plugins = findViewById(R.id.plugins);
-        myapps = findViewById(R.id.myapps);
-        mainmenus = findViewById(R.id.mainmenus);
+        mProfilePictureImageView = findViewById(R.id.main_profile_picture_image_view);
+        mUsername = findViewById(R.id.main_username);
+        mPoliticalLeaning = findViewById(R.id.main_political_affiliation);
 
         mClassifierLinearLayout = findViewById(R.id.classifier_linear_layout);
         mClassifierLinearLayout.setOnClickListener(new View.OnClickListener() {
@@ -83,6 +84,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        mSettingsLinearLayout = findViewById(R.id.settings_linear_layout);
+        mSettingsLinearLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        configureUI();
+
         //Add onDataChange Listener here, so that constantly updating Classifier and Game Class
         //Retrieve data from RealTimeDatabase
         DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
@@ -101,4 +113,21 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
     }
+
+    public void configureUI() {
+
+        mUsername.setText(LoginActivity.username);
+        mPoliticalLeaning.setText(PoliticalLeaningConversion.handlePoliticalLeaningValue(LoginActivity.politicalLeaning));
+
+        Bitmap decodedByte;
+        String profilePictureBytesString = LoginActivity.profilePictureBytes;
+
+        if (profilePictureBytesString != null) {
+            byte[] decodedString = Base64.decode(profilePictureBytesString, Base64.DEFAULT);
+            decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+            mProfilePictureImageView.setImageBitmap(decodedByte);
+        }
+
+    }
+
 }

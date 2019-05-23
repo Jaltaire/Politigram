@@ -64,6 +64,7 @@ public class ClassifierFragment extends android.app.Fragment {
             @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
             @Override
             public void onClick(View v) {
+                //Intent intent = new Intent(getActivity(), ClassifierHistoryFragment.class);
 
             }
         });

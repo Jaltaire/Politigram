@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="set_profile_picture_options">
+        <item>Take picture with camera app</item>
+        <item>Select from gallery</item>
+    </string-array>
+</resources>
