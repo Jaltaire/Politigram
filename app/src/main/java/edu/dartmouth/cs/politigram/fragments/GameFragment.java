@@ -7,6 +7,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import edu.dartmouth.cs.politigram.GameObject;
 import edu.dartmouth.cs.politigram.R;
 
 public class GameFragment extends Fragment {
@@ -26,5 +32,22 @@ public class GameFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+
+        int score = 0;
+        String dateTime = "0";
+        //Create GameObject once we have the score
+        GameObject gameObject = new GameObject(score, dateTime);
+
+        //When Game ends and we want to save the score in Firebase
+        DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        FirebaseUser User = mAuth.getCurrentUser();
+        String mUserId = User.getUid();
+//        database1.child("user_" + mUserId).child("game_results")
+
+
     }
+
+    //setValue(score and date/time) for firebase realtimedatabase when user ends game
+
 }

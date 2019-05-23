@@ -1,6 +1,7 @@
 package edu.dartmouth.cs.politigram.fragments;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -32,5 +33,17 @@ public class ClassifierFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        Button goToHistoryBtn = view.findViewById(R.id.classifier_fragment_history_button);
+
+        goToHistoryBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), ClassifierHistoryFragment.class);
+
+            }
+        });
+
     }
+
+    //setValue(image & resultfromAPI) for firebase realtimedatabase when user clicks button(either select photo or run or something)
 }

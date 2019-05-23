@@ -3,8 +3,10 @@ package edu.dartmouth.cs.politigram.activities;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -12,6 +14,14 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import edu.dartmouth.cs.politigram.R;
 import edu.dartmouth.cs.politigram.fragments.ClassifierFragment;
@@ -73,5 +83,22 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //Add onDataChange Listener here, so that constantly updating Classifier and Game Class
+        //Retrieve data from RealTimeDatabase
+        DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        FirebaseUser User = mAuth.getCurrentUser();
+        String mUserId = User.getUid();
+        database1.child("user_" + mUserId).child("classifier_results")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
     }
 }
