@@ -28,4 +28,9 @@
     <string name="account_settings_preference_category">Account Settings</string>
     <string name="sign_out_title">Sign out</string>
     <string name="sign_out_key">SignOut</string>
+    <string name="classification_result_activity_title">Classification Result</string>
+    <string name="classifier_history_activity_title">Classifier History</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

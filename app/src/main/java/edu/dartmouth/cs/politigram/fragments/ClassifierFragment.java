@@ -12,9 +12,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
-import android.media.Image;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -22,20 +20,14 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -50,13 +42,13 @@ import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.FaceDetector;
 import com.google.android.gms.vision.face.Landmark;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.util.Lists;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.soundcloud.android.crop.Crop;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -64,16 +56,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import edu.dartmouth.cs.politigram.ClassifierObject;
-import edu.dartmouth.cs.politigram.GameObject;
 import edu.dartmouth.cs.politigram.R;
+import edu.dartmouth.cs.politigram.activities.ClassifierHistoryActivity;
+import edu.dartmouth.cs.politigram.activities.ClassifierResultActivity;
+import edu.dartmouth.cs.politigram.activities.LoginActivity;
 import edu.dartmouth.cs.politigram.utils.ReferenceVariables;
 
 import static android.app.Activity.RESULT_OK;
@@ -85,10 +77,15 @@ public class ClassifierFragment extends android.app.Fragment {
     private static final String URI_INSTANCE_STATE_KEY = "saved_uri";
     private static final String PROFILE_PICTURE_INSTANCE_STATE_KEY = "saved_profile_picture";
 
+    public static final String INTENT_IMAGE_KEY = "intent_image_key";
+    public static final String INTENT_LABEL_KEY = "intent_label_key";
+    public static final String INTENT_CONFIDENCE_KEY = "intent_confidence_key";
+
     private Uri mTempImageCaptureURI;
     private Uri mImageCaptureURI;
 
     private Bitmap mImageCaptureBitmap;
+    private byte[] mImageCaptureByteArray;
 
     private ImageView mImageView;
 
@@ -129,6 +126,14 @@ public class ClassifierFragment extends android.app.Fragment {
             }
         });
 
+        mHistoryButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getContext(), ClassifierHistoryActivity.class);
+                startActivity(intent);
+            }
+        });
+
         checkDevicePermissions();
         //classifyPhoto();
 
@@ -136,7 +141,7 @@ public class ClassifierFragment extends android.app.Fragment {
         String result = "liberal";
 
         //Create ClassifierObject once we have the score
-        ClassifierObject classifierObject = new ClassifierObject(image,result);
+        ClassifierObject classifierObject = new ClassifierObject(image, result);
 
         //When photo is selected, add classifierObject to Firebase
         DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
@@ -144,15 +149,6 @@ public class ClassifierFragment extends android.app.Fragment {
         FirebaseUser User = mAuth.getCurrentUser();
         String mUserId = User.getUid();
         database1.child("user_" + mUserId).child("classifier_results").push().setValue(classifierObject);
-
-        mHistoryButton.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
-            @Override
-            public void onClick(View v) {
-                //Intent intent = new Intent(getActivity(), ClassifierHistoryFragment.class);
-
-            }
-        });
 
     }
 
@@ -413,8 +409,8 @@ public class ClassifierFragment extends android.app.Fragment {
 
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
                     mImageCaptureBitmap.compress(Bitmap.CompressFormat.PNG,100, bos);
-                    byte[] bb = bos.toByteArray();
-                    String image = Base64.encodeToString(bb, Base64.NO_WRAP);
+                    mImageCaptureByteArray = bos.toByteArray();
+                    String image = Base64.encodeToString(mImageCaptureByteArray, Base64.NO_WRAP);
 
                     JSONObject imageBytesJSON = new JSONObject();
                     imageBytesJSON.put("imageBytes", image);
@@ -438,10 +434,34 @@ public class ClassifierFragment extends android.app.Fragment {
                             public void onResponse(JSONObject response) {
                                 Log.d("TEST", "got response!");
                                 Log.d("TEST", response.toString());
+
                                 try {
-                                    if (!response.has("result") || !response.getString("result").equalsIgnoreCase("success")) {
-                                        Log.d("TEST", "if condition");
+
+                                    if (response.length() == 0) {
+                                        Toast.makeText(getContext(), "Could not get accurate reading from photo. Try again with a different image.", Toast.LENGTH_LONG).show();
+                                        mPredictionButton.setText("SELECT NEW PHOTO");
+                                        mPredictionButton.setBackground(getResources().getDrawable(R.drawable.bgbtnguide_invalid));
+                                        mAllowClassification = false;
                                     }
+
+                                    else {
+
+                                        JSONArray jsonArray = response.getJSONArray("payload");
+
+                                        JSONObject jsonIntermediary = jsonArray.getJSONObject(0);
+
+                                        String label = jsonIntermediary.getString("displayName");
+                                        String score = jsonIntermediary.getJSONObject("classification").getString("score");
+
+                                        Intent intent = new Intent(getContext(), ClassifierResultActivity.class);
+                                        intent.putExtra(INTENT_IMAGE_KEY, mImageCaptureByteArray);
+                                        intent.putExtra(INTENT_LABEL_KEY, label);
+                                        intent.putExtra(INTENT_CONFIDENCE_KEY, score);
+                                        startActivityForResult(intent, LoginActivity.REQUEST_CREDENTIALS);
+
+                                    }
+
+
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
@@ -453,6 +473,9 @@ public class ClassifierFragment extends android.app.Fragment {
                             public void onErrorResponse(VolleyError error) {
                                 // TODO: Handle error
                                 Log.d("TEST", "POST request unsuccessful");
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                    Toast.makeText(getContext(), "Classification unsuccessful. Try again.", Toast.LENGTH_LONG).show();
+                                }
                                 error.printStackTrace();
                             }
 
@@ -488,5 +511,3 @@ public class ClassifierFragment extends android.app.Fragment {
     }
 
 }
-
-//setValue(image & resultfromAPI) for firebase realtimedatabase when user clicks button(either select photo or run or something)

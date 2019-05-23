@@ -29,6 +29,7 @@ import com.google.firebase.database.ValueEventListener;
 import edu.dartmouth.cs.politigram.R;
 import edu.dartmouth.cs.politigram.fragments.ClassifierFragment;
 import edu.dartmouth.cs.politigram.fragments.GameFragment;
+import edu.dartmouth.cs.politigram.fragments.LeaderboardFragment;
 import edu.dartmouth.cs.politigram.fragments.MainFragment;
 import edu.dartmouth.cs.politigram.utils.PoliticalLeaningConversion;
 
@@ -80,6 +81,16 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
                 fragmentTransaction.replace(R.id.fragment_container, new GameFragment());
+                fragmentTransaction.commit();
+            }
+        });
+
+        mLeaderboardLinearLayout = findViewById(R.id.leaderboard_linear_layout);
+        mLeaderboardLinearLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+                fragmentTransaction.replace(R.id.fragment_container, new LeaderboardFragment());
                 fragmentTransaction.commit();
             }
         });
