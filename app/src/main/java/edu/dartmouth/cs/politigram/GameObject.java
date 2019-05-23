@@ -2,19 +2,19 @@ package edu.dartmouth.cs.politigram;
 
 public class GameObject {
 
-    int score;
+    String score;
     String dateTime;
 
-    public GameObject(int score, String dateTime){
+    public GameObject(String score, String dateTime){
         this.score = score;
         this.dateTime = dateTime;
     }
 
-    public int getScore() {
+    public String getScore() {
         return score;
     }
 
-    public void setScore(int score) {
+    public void setScore(String score) {
         this.score = score;
     }
 

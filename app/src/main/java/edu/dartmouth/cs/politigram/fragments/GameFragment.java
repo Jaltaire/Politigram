@@ -1,11 +1,13 @@
 package edu.dartmouth.cs.politigram.fragments;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -14,6 +16,7 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import edu.dartmouth.cs.politigram.GameObject;
 import edu.dartmouth.cs.politigram.R;
+import edu.dartmouth.cs.politigram.activities.GameHistoryActivity;
 
 public class GameFragment extends Fragment {
 
@@ -32,8 +35,17 @@ public class GameFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        Button goToGameHistory = view.findViewById(R.id.game_history_btn);
 
-        int score = 0;
+        goToGameHistory.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), GameHistoryActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        String score = "0";
         String dateTime = "0";
         //Create GameObject once we have the score
         GameObject gameObject = new GameObject(score, dateTime);
