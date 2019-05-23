@@ -16,8 +16,8 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-    ">
-        <activity android:name=".activities.GameHistoryActivity"></activity>
+        <activity android:name=".activities.ClassificationResultActivity"></activity>
+        <activity android:name=".activities.GameHistoryActivity" />
         <activity
             android:name=".activities.MainActivity"
             android:screenOrientation="portrait"
@@ -35,7 +35,9 @@
             android:name=".activities.ProfileActivity"
             android:theme="@style/AppTheme.Dark" />
         <activity android:name="com.soundcloud.android.crop.CropImageActivity" />
-        <activity android:name=".activities.SettingsActivity" />
+        <activity
+            android:name=".activities.SettingsActivity"
+            android:theme="@style/AppTheme" />
     </application>
 
 </manifest>

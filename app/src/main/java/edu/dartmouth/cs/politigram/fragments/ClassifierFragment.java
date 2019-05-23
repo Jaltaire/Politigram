@@ -16,6 +16,7 @@ import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.Image;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -24,6 +25,7 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Base64;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
@@ -36,22 +38,43 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.FaceDetector;
 import com.google.android.gms.vision.face.Landmark;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.util.Lists;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.soundcloud.android.crop.Crop;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import edu.dartmouth.cs.politigram.ClassifierObject;
 import edu.dartmouth.cs.politigram.GameObject;
 import edu.dartmouth.cs.politigram.R;
+import edu.dartmouth.cs.politigram.utils.ReferenceVariables;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -64,6 +87,8 @@ public class ClassifierFragment extends android.app.Fragment {
 
     private Uri mTempImageCaptureURI;
     private Uri mImageCaptureURI;
+
+    private Bitmap mImageCaptureBitmap;
 
     private ImageView mImageView;
 
@@ -97,11 +122,15 @@ public class ClassifierFragment extends android.app.Fragment {
         mPredictionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onSetProfilePicturePressed(view);
+
+                if (!mAllowClassification) onSetProfilePicturePressed(view);
+                else classifyPhoto();
+
             }
         });
 
         checkDevicePermissions();
+        //classifyPhoto();
 
         String image = "image";
         String result = "liberal";
@@ -287,12 +316,12 @@ public class ClassifierFragment extends android.app.Fragment {
 
         try {
 
-            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), mImageCaptureURI);
+            mImageCaptureBitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), mImageCaptureURI);
 
-            Bitmap tempBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.RGB_565);
+            Bitmap tempBitmap = Bitmap.createBitmap(mImageCaptureBitmap.getWidth(), mImageCaptureBitmap.getHeight(), Bitmap.Config.RGB_565);
             Canvas tempCanvas = new Canvas(tempBitmap);
 
-            tempCanvas.drawBitmap(bitmap, 0, 0, null);
+            tempCanvas.drawBitmap(mImageCaptureBitmap, 0, 0, null);
 
             FaceDetector detector = null;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -301,7 +330,7 @@ public class ClassifierFragment extends android.app.Fragment {
                         .setLandmarkType(FaceDetector.ALL_LANDMARKS)
                         .build();
 
-                Frame frame = new Frame.Builder().setBitmap(bitmap).build();
+                Frame frame = new Frame.Builder().setBitmap(mImageCaptureBitmap).build();
 
                 SparseArray<Face> faces = detector.detect(frame);
                 Log.d("TEST", Integer.toString(faces.size()));
@@ -330,12 +359,20 @@ public class ClassifierFragment extends android.app.Fragment {
                     mPredictionButton.setBackground(getResources().getDrawable(R.drawable.bgbtnguide_invalid));
 
                     if (faces.size() == 0) {
-                        Toast.makeText(getContext(), "No face detected! Select a new photo.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "No face detected! Select a new photo.", Toast.LENGTH_LONG).show();
                     }
 
                     else {
-                        Toast.makeText(getContext(), "Multiple faces detected! Select a new photo.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Multiple faces detected! Select a new photo.", Toast.LENGTH_LONG).show();
                     }
+
+                }
+
+                else {
+
+                    mPredictionButton.setText("CLASSIFY PHOTO");
+                    mPredictionButton.setBackground(getResources().getDrawable(R.drawable.bgbtnguide_valid));
+                    mAllowClassification = true;
 
                 }
 
@@ -343,6 +380,109 @@ public class ClassifierFragment extends android.app.Fragment {
 
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+    }
+
+    private void classifyPhoto() {
+
+        Log.d("TEST", "attempting to classify photo");
+        new PerformClassification().execute();
+
+
+    }
+
+    private class PerformClassification extends AsyncTask<String, String,String> {
+        protected String doInBackground(String... urls) {
+
+            try {
+
+                List<String> scopeList = new ArrayList<String>();
+                scopeList.add("https://www.googleapis.com/auth/cloud-platform");
+
+                //InputStream is = getActivity().getAssets().open("app.json");
+                InputStream is = getActivity().getAssets().open("app.json");
+                GoogleCredential credential = GoogleCredential.fromStream(is).createScoped(scopeList);
+                credential.refreshToken();
+                final String accessToken = credential.getAccessToken();
+
+                Log.d("TEST", accessToken);
+
+                JSONObject payloadJSON = new JSONObject();
+                try {
+
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    mImageCaptureBitmap.compress(Bitmap.CompressFormat.PNG,100, bos);
+                    byte[] bb = bos.toByteArray();
+                    String image = Base64.encodeToString(bb, Base64.NO_WRAP);
+
+                    JSONObject imageBytesJSON = new JSONObject();
+                    imageBytesJSON.put("imageBytes", image);
+
+                    JSONObject imageJSON = new JSONObject();
+                    imageJSON.put("image", imageBytesJSON);
+
+                    payloadJSON.put("payload", imageJSON);
+
+                    Log.d("TEST", "json object created!");
+                    Log.d("TEST", payloadJSON.toString());
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                        (Request.Method.POST, ReferenceVariables.AUTO_ML_HOOK, payloadJSON, new Response.Listener<JSONObject>() {
+
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                Log.d("TEST", "got response!");
+                                Log.d("TEST", response.toString());
+                                try {
+                                    if (!response.has("result") || !response.getString("result").equalsIgnoreCase("success")) {
+                                        Log.d("TEST", "if condition");
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+
+                            }
+                        }, new Response.ErrorListener() {
+
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                // TODO: Handle error
+                                Log.d("TEST", "POST request unsuccessful");
+                                error.printStackTrace();
+                            }
+
+                        }) {
+
+                    @Override
+                    public Map<String, String> getHeaders() throws AuthFailureError {
+
+                        Map<String, String> params = new HashMap<String, String>();
+                        params.put("Authorization", "Bearer " + accessToken);
+
+                        return params;
+                    }
+                };
+
+                RequestQueue queue = null;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                    queue = Volley.newRequestQueue(getContext());
+                    queue.add(jsonObjectRequest);
+                }
+
+                Log.d("TEST", "end of volley api call");
+
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return null;
         }
 
     }

@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "politigram",
+  "private_key_id": "812040990e49d4eeeea81e92a8593ae9e46d75e0",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDc//DHRRALnFZI\nJU0c2uspanpxH5TS7Y/dZ0P3ZOLn7IznymJ6sNOOz2N6t+G5B38WxdrWUeNL5uqN\nnYn0tBrnQ9Cl3wH/3LBGhPpBUhEGMMoFNllz7kTvhFenp+uiwdL4Lf/BrpiTNfeW\nxR0Bd7Oz4Yu8A3VdbLB7ZveL+8gTdn0YovwJqGsc6BJMJZxuQrRbbzlGuWd0WS9s\nvWMO+SrRpL7s9e5Z9jvNOsy93vpmFyCN76KHu1u45a3hjntW2DWXOqCm/VVx/7dC\n17SjZC/8GHBK2PZyZ/34eXLgsdl8OiOVNL7cZhTl2GzlsZ0a4KZpZ3nLQHxPjnXo\nf/SAW5NHAgMBAAECggEACdL8KnTmKF35cpjrO056swtKCMqqnFB122sXw7ZMZUWd\nY0Bv7ZxRYJZ/iZkFrmqoOk7up3sEa6oG4JIRlpCFvE9wxa7gMTY879BBf7MyO+A3\nWtFLsLJK24rlNU1rACqK7QATz9GpyVbWJsb5vx2fHhlMqOhOc1S9k6luyl5ASqfI\nnrZowIBUT8gAo/7FfY1Pw6SZxOXiJ1dPS6tOXg9vzuE1I+/Y640PIWi6RYr9NICK\npLKgRJCaH+FBm9b6FNEI6K+zH4sonscuQCJLAJxDMguCHm9VaUvUIcmbPv2e754B\neycbaV5RdgshhEAh61nu6N9OtRoJWibi9/YaMJzrwQKBgQDxzrn+xR9pwy4rMe8S\neivIMKV3+rMhC/NlD06ki5yEwT+WApQFjfLQ2sfV1uxQY2U5GNrByGWb9Z0tWteZ\nGyUf/YqW0zcoq8d4KiyNDQxfeAoSHtt1XsO+1B5HbWTVFBAKgDenjgsJSPbwBsKq\nykUS98/Wd+4EFugqJyiz5m6cnwKBgQDp+JFIHPTXKYt4JlUa2uNBYKaZcnv9TthC\nx9JjPZvekS9DaS7AT8OuGT4I+t81PodVAzSLSjaU9Me6EugKUie+ZbsvgL1fkd2W\n6UmEW/GMedwXPCXwU2LclWHf1AA5QWsG0euGkZJy6xfjyzjrcpkItg4CTuv4nWNq\nM5jom6TgWQKBgQCzoEnyxCRtwJwPYmyiYTcc42ZIFmfy6JnKPPDCsyN2Ssgde5TR\n+3yhQaSpaZrqrKuJGrmGsoMos/AqvQzjo5KUjRfiqsyS3eizj0DBFyxVzypMA7gr\nHFZ078X+cXkyAFFaO50cTxxLrXQjIiKCFPfy+zvdqgGZ8BpPFf/ahBcvKQKBgQDX\nEUfqc8OULHopfYLpZp9TL1a04omatOkRqcB4vN8UXXyGiJ8S479Jv6ZIduLKfKnF\nuWaJSzSVA9S79Dkbk5045SaFad+pg9meqN6NLj8BE9r9+KofGWdcwGvxZVy3RKzu\n3fOUBSgLPpL9L4co1nRZj4+dC5LZO0NxEfDSkI+kMQKBgQCr7+ZPoUg2SfeqACIZ\ndG/ybI9JcNKJd3VDNTaNPcIywizrrJTx9UeBjE+OkYxZZggxMQSoNhQx3DJPEWSH\nbuDKKRG9Uasw5ICvHp5ZMo3g078/E+XRQAn1EI6SwQddNeJb/HTnzE3nvPNUU5OL\n5h0c8dzW2NvimOgfEurGyeSgvg==\n-----END PRIVATE KEY-----\n",
+  "client_email": "classifier@politigram.iam.gserviceaccount.com",
+  "client_id": "109873266335273271309",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/classifier%40politigram.iam.gserviceaccount.com"
+}
