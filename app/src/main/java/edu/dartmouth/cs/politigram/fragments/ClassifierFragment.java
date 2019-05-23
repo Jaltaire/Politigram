@@ -38,7 +38,7 @@ public class ClassifierFragment extends Fragment {
         goToHistoryBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), ClassifierHistoryFragment.class);
+                //Intent intent = new Intent(getActivity(), ClassifierHistoryFragment.class);
 
             }
         });

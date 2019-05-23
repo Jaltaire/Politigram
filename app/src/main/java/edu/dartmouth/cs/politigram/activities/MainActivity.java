@@ -27,16 +27,15 @@ import edu.dartmouth.cs.politigram.R;
 import edu.dartmouth.cs.politigram.fragments.ClassifierFragment;
 import edu.dartmouth.cs.politigram.fragments.GameFragment;
 import edu.dartmouth.cs.politigram.fragments.MainFragment;
+import edu.dartmouth.cs.politigram.utils.PoliticalLeaningConversion;
 
 //test
 public class MainActivity extends AppCompatActivity {
 
-    TextView nameuser, walletuser, review, network, plugins, myapps, mainmenus,
-            pagetitle, pagesubtitle;
+    TextView mUsername;
+    TextView mPoliticalLeaning;
 
-    Button btnguide;
     Animation atg, atgtwo, atgthree;
-    ImageView imageView3;
 
     private LinearLayout mClassifierLinearLayout;
     private LinearLayout mGameLinearLayout;
@@ -54,14 +53,8 @@ public class MainActivity extends AppCompatActivity {
         atgtwo = AnimationUtils.loadAnimation(this, R.anim.atgtwo);
         atgthree = AnimationUtils.loadAnimation(this, R.anim.atgthree);
 
-        nameuser = findViewById(R.id.nameuser);
-        walletuser = findViewById(R.id.walletuser);
-
-        review = findViewById(R.id.review);
-        network = findViewById(R.id.network);
-        plugins = findViewById(R.id.plugins);
-        myapps = findViewById(R.id.myapps);
-        mainmenus = findViewById(R.id.mainmenus);
+        mUsername = findViewById(R.id.main_username);
+        mPoliticalLeaning = findViewById(R.id.main_political_affiliation);
 
         mClassifierLinearLayout = findViewById(R.id.classifier_linear_layout);
         mClassifierLinearLayout.setOnClickListener(new View.OnClickListener() {
@@ -83,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        configureUI();
+
         //Add onDataChange Listener here, so that constantly updating Classifier and Game Class
         //Retrieve data from RealTimeDatabase
         DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
@@ -101,4 +96,12 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
     }
+
+    public void configureUI() {
+
+        mUsername.setText(LoginActivity.username);
+        mPoliticalLeaning.setText(PoliticalLeaningConversion.handlePoliticalLeaningValue(LoginActivity.politicalLeaning));
+
+    }
+
 }

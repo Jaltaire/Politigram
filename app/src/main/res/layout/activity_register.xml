@@ -51,6 +51,7 @@
             </android.support.v7.widget.CardView>
 
             <android.support.design.widget.FloatingActionButton
+                android:id="@+id/set_profile_picture_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:layout_anchor="@+id/profile_picture_image_view"
@@ -59,6 +60,20 @@
                 android:src="@android:drawable/ic_menu_camera" />
 
         </android.support.design.widget.CoordinatorLayout>
+
+        <TextView
+            android:id="@+id/register_username_available_text_view"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:gravity="left"
+            android:drawablePadding="10dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginStart="20dp"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:textSize="12sp"
+            android:textColor="#FFFFFF" />
 
         <EditText
             android:layout_width="match_parent"
