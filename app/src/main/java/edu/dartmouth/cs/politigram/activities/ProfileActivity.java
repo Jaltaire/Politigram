@@ -107,7 +107,7 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_register);
+        setContentView(R.layout.activity_profile);
 
         if (getCallingActivity() != null) {
             String callingClass = getCallingActivity().getClassName();

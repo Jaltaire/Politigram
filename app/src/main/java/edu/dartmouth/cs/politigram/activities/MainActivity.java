@@ -2,10 +2,13 @@ package edu.dartmouth.cs.politigram.activities;
 
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
@@ -32,6 +35,8 @@ import edu.dartmouth.cs.politigram.utils.PoliticalLeaningConversion;
 //test
 public class MainActivity extends AppCompatActivity {
 
+    ImageView mProfilePictureImageView;
+
     TextView mUsername;
     TextView mPoliticalLeaning;
 
@@ -39,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
 
     private LinearLayout mClassifierLinearLayout;
     private LinearLayout mGameLinearLayout;
+    private LinearLayout mLeaderboardLinearLayout;
+    private LinearLayout mSettingsLinearLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
         atgtwo = AnimationUtils.loadAnimation(this, R.anim.atgtwo);
         atgthree = AnimationUtils.loadAnimation(this, R.anim.atgthree);
 
+        mProfilePictureImageView = findViewById(R.id.main_profile_picture_image_view);
         mUsername = findViewById(R.id.main_username);
         mPoliticalLeaning = findViewById(R.id.main_political_affiliation);
 
@@ -73,6 +81,15 @@ public class MainActivity extends AppCompatActivity {
                 final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
                 fragmentTransaction.replace(R.id.fragment_container, new GameFragment());
                 fragmentTransaction.commit();
+            }
+        });
+
+        mSettingsLinearLayout = findViewById(R.id.settings_linear_layout);
+        mSettingsLinearLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+                startActivity(intent);
             }
         });
 
@@ -101,6 +118,15 @@ public class MainActivity extends AppCompatActivity {
 
         mUsername.setText(LoginActivity.username);
         mPoliticalLeaning.setText(PoliticalLeaningConversion.handlePoliticalLeaningValue(LoginActivity.politicalLeaning));
+
+        Bitmap decodedByte;
+        String profilePictureBytesString = LoginActivity.profilePictureBytes;
+
+        if (profilePictureBytesString != null) {
+            byte[] decodedString = Base64.decode(profilePictureBytesString, Base64.DEFAULT);
+            decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+            mProfilePictureImageView.setImageBitmap(decodedByte);
+        }
 
     }
 

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory android:title="@string/application_settings_preference_category" >
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/privacy_setting_key"
+            android:summary="@string/privacy_setting_summary"
+            android:title="@string/privacy_setting_title"/>
+
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/account_settings_preference_category" >
+        <Preference
+            android:title="@string/sign_out_title"
+            android:key="@string/sign_out_key" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -44,12 +44,13 @@ public class LoginActivity extends AppCompatActivity {
     private boolean mValidEmail;
     private boolean mValidPassword;
 
+    public static String profilePictureBytes;
     public static String email;
     public static String password;
 
-    public static String username;
-    public static Integer politicalLeaning;
-    public static Integer leaderboardPosition;
+    public static String username = "";
+    public static Integer politicalLeaning = -1;
+    public static Integer leaderboardPosition = -1;
 
     SharedPreferences signInPrefs;
     private boolean mSignedIn;
@@ -107,7 +108,7 @@ public class LoginActivity extends AppCompatActivity {
         if (mSignedIn) {
             signIn();
             getProfileData();
-            launchMainActivity();
+            //launchMainActivity();
         }
     }
 
@@ -135,7 +136,7 @@ public class LoginActivity extends AppCompatActivity {
                     updateSignInSharedPreferences();
 
                     if (!mSignedIn) {
-                        launchMainActivity();
+                        getProfileData();
                     }
 
                     Log.d("TEST", "task successful");
@@ -216,12 +217,16 @@ public class LoginActivity extends AppCompatActivity {
 
         DatabaseReference usersRef = ref.child(ProfileActivity.FIREBASE_USERS_PATH);
 
-        usersRef.child(StringToHash.getHex(email)).child("profile_data").addListenerForSingleValueEvent(new ValueEventListener() {
+        usersRef.child("user_" + StringToHash.getHex(email)).child("profile_data").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
+                profilePictureBytes = dataSnapshot.child("profilePicture").getValue(String.class);
                 username = dataSnapshot.child("username").getValue(String.class);
                 politicalLeaning = dataSnapshot.child("sliderPosition").getValue(Integer.class);
+
+                // Launch MainActivity after all profile data has been loaded.
+                launchMainActivity();
 
             }
 

@@ -19,4 +19,13 @@
     <string name="not_registered_toast">No profile registered.</string>
     <string name="profile_saved_toast">Profile saved!</string>
     <string name="profile_not_updated_toast">Profile not updated.</string>
+    <string name="settings_activity_label">Settings</string>
+
+    <string name="privacy_setting_key">PrivacySetting</string>
+    <string name="privacy_setting_summary">Your info won\'t be shared with Politigram or listed on the leaderboard.</string>
+    <string name="privacy_setting_title">Privacy Setting</string>
+    <string name="application_settings_preference_category">Application Settings</string>
+    <string name="account_settings_preference_category">Account Settings</string>
+    <string name="sign_out_title">Sign out</string>
+    <string name="sign_out_key">SignOut</string>
 </resources>

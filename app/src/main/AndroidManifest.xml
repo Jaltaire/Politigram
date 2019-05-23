@@ -33,6 +33,7 @@
             android:name=".activities.ProfileActivity"
             android:theme="@style/AppTheme.Dark" />
         <activity android:name="com.soundcloud.android.crop.CropImageActivity" />
+        <activity android:name=".activities.SettingsActivity" />
     </application>
 
 </manifest>
