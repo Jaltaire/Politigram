@@ -12,6 +12,9 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/account_settings_preference_category" >
         <Preference
+            android:title="@string/edit_profile_title"
+            android:key="@string/edit_profile_key" />
+        <Preference
             android:title="@string/sign_out_title"
             android:key="@string/sign_out_key" />
     </PreferenceCategory>

@@ -104,8 +104,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        configureUI();
-
         //Add onDataChange Listener here, so that constantly updating Classifier and Game Class
         //Retrieve data from RealTimeDatabase
         DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
@@ -146,4 +144,11 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Called in onResume() such that header UI can be updated if changes are made to profile.
+        configureUI();
+    }
 }

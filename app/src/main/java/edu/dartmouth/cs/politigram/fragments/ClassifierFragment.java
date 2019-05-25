@@ -52,10 +52,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -96,6 +98,8 @@ public class ClassifierFragment extends android.app.Fragment {
 
     private boolean mAllowClassification = false;
 
+    private boolean mScaleClassificationResultToLocation = true;
+
     public ClassifierFragment() {
         // Required empty public constructor
     }
@@ -135,6 +139,7 @@ public class ClassifierFragment extends android.app.Fragment {
         });
 
         checkDevicePermissions();
+        handleCurrentLocation();
         //classifyPhoto();
 
         String image = "image";
@@ -157,27 +162,27 @@ public class ClassifierFragment extends android.app.Fragment {
         if(Build.VERSION.SDK_INT < 23)
             return;
 
-        if (getActivity().checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED || getActivity().checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA}, 0);
+        if (getActivity().checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED || getActivity().checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED || getActivity().checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || getActivity().checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
         }
     }
 
     // Prompt user to provide permission to access camera and external storage.
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if (grantResults[0] == PackageManager.PERMISSION_DENIED || grantResults[1] == PackageManager.PERMISSION_DENIED){ // If storage or camera permissions have not been granted...
+        if (grantResults[0] == PackageManager.PERMISSION_DENIED || grantResults[1] == PackageManager.PERMISSION_DENIED || grantResults[2] == PackageManager.PERMISSION_DENIED || grantResults[3] == PackageManager.PERMISSION_DENIED){ // If storage or camera permissions have not been granted...
             if (Build.VERSION.SDK_INT >= 23) { // If Android system is running Marshmallow or higher...
-                if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) || shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) || shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE) || shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) || shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION)) {
                     AlertDialog.Builder alertDialog = new AlertDialog.Builder(getContext());
                     alertDialog.setMessage("Permission is required for this app to work properly.").setTitle("Permission Required");
                     alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 
                                 public void onClick(DialogInterface dialog, int id) { // Anonymous function to check if external storage can be used.
-                                    requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA}, 0); }
+                                    requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 0); }
                             }
                     );
                     // Continue trying to request permissions unless user specifies "don't ask me again".
-                    requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA}, 0);
+                    requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
                 }
                 else { // If a user refuses to accept the requested permissions, the user cannot take a photo or save app data.
 
@@ -187,6 +192,10 @@ public class ClassifierFragment extends android.app.Fragment {
 
                     if (getActivity().checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                         mPredictionButton.setEnabled(false);
+                    }
+
+                    if (getActivity().checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || getActivity().checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        mScaleClassificationResultToLocation = false;
                     }
 
                 }
@@ -396,7 +405,6 @@ public class ClassifierFragment extends android.app.Fragment {
                 List<String> scopeList = new ArrayList<String>();
                 scopeList.add("https://www.googleapis.com/auth/cloud-platform");
 
-                //InputStream is = getActivity().getAssets().open("app.json");
                 InputStream is = getActivity().getAssets().open("app.json");
                 GoogleCredential credential = GoogleCredential.fromStream(is).createScoped(scopeList);
                 credential.refreshToken();
@@ -407,8 +415,12 @@ public class ClassifierFragment extends android.app.Fragment {
                 JSONObject payloadJSON = new JSONObject();
                 try {
 
+                    // Scale size of Bitmap such that AutoML Vision API can process picture even if original is large.
+                    // Experienced API connection errors when trying to upload full-size images.
+                    Bitmap tempBitmap = Bitmap.createScaledBitmap(mImageCaptureBitmap, 500, 500, false);
+
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    mImageCaptureBitmap.compress(Bitmap.CompressFormat.PNG,100, bos);
+                    tempBitmap.compress(Bitmap.CompressFormat.PNG,100, bos);
                     mImageCaptureByteArray = bos.toByteArray();
                     String image = Base64.encodeToString(mImageCaptureByteArray, Base64.NO_WRAP);
 
@@ -506,6 +518,23 @@ public class ClassifierFragment extends android.app.Fragment {
             }
 
             return null;
+        }
+
+    }
+
+    private void handleCurrentLocation() {
+
+        try {
+            InputStreamReader isr = new InputStreamReader(getActivity().getAssets().open("election-data.csv"));
+            BufferedReader reader = new BufferedReader(isr);
+            reader.readLine();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                Log.d("TEST", line);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
     }

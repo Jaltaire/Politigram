@@ -9,12 +9,15 @@ import android.preference.PreferenceManager;
 
 import edu.dartmouth.cs.politigram.R;
 import edu.dartmouth.cs.politigram.activities.LoginActivity;
+import edu.dartmouth.cs.politigram.activities.ProfileActivity;
 
 import static android.content.Context.MODE_PRIVATE;
 
 public class SettingsFragment extends PreferenceFragment {
 
+    Preference mEditProfile;
     Preference mSignOut;
+
     private static final String SIGNED_IN_KEY = "signed_in";
     private static final String PRIVACY_KEY  = "privacy";
 
@@ -23,6 +26,18 @@ public class SettingsFragment extends PreferenceFragment {
         super.onCreate(savedInstanceState);
 
         addPreferencesFromResource(R.xml.preferences);
+
+        mEditProfile = findPreference(getString(R.string.edit_profile_key));
+        mEditProfile.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+
+                Intent myIntent = new Intent(getActivity(), ProfileActivity.class);
+                getActivity().startActivityForResult(myIntent, 0);
+
+                return true;
+            }
+        });
 
         mSignOut = findPreference(getString(R.string.sign_out_key));
         mSignOut.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {

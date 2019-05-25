@@ -16,7 +16,7 @@
         android:focusableInTouchMode="true" >
 
         <TextView
-            android:id="@+id/login_title_text_view"
+            android:id="@+id/profile_title_text_view"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:paddingTop="10pt"
@@ -164,7 +164,7 @@
 
         <!-- Signup Button -->
         <android.support.v7.widget.AppCompatButton
-            android:id="@+id/btn_signup"
+            android:id="@+id/profile_save_button"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"

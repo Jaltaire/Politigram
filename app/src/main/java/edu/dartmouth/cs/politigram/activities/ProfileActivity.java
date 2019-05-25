@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.net.Uri;
@@ -55,12 +56,15 @@ import java.util.Set;
 import edu.dartmouth.cs.politigram.R;
 import edu.dartmouth.cs.politigram.fragments.PolitigramDialogFragment;
 import edu.dartmouth.cs.politigram.models.ProfileEntry;
+import edu.dartmouth.cs.politigram.utils.PoliticalLeaningConversion;
 import edu.dartmouth.cs.politigram.utils.StringToHash;
 
 
 // Handles new user registration.
 public class ProfileActivity extends AppCompatActivity {
     private static final String TAG = "ProfileActivity";
+
+    private TextView mProfileTitleTextView;
 
     private SeekBar mPoliticalLeaningSeekBar;
     private TextView mPoliticalLeaningTextView;
@@ -112,10 +116,14 @@ public class ProfileActivity extends AppCompatActivity {
         if (getCallingActivity() != null) {
             String callingClass = getCallingActivity().getClassName();
 
+            Log.d("TEST", "calling class: " + callingClass);
+
             if (callingClass.equals(LoginActivity.class.getName())) mCallerFlag = 0;
-            else if (callingClass.equals(MainActivity.class.getName())) mCallerFlag = 1;
+            else if (callingClass.equals(SettingsActivity.class.getName())) mCallerFlag = 1;
 
         }
+
+        mProfileTitleTextView = findViewById(R.id.profile_title_text_view);
 
         mImageView = findViewById(R.id.profile_picture_image_view);
         mSetProfilePictureButton = findViewById(R.id.set_profile_picture_button);
@@ -124,12 +132,14 @@ public class ProfileActivity extends AppCompatActivity {
         mPoliticalLeaningTextView = findViewById(R.id.political_leaning_text_view);
 
         mLoginTextView = findViewById(R.id.login_text_view);
-        mRegisterBtn = findViewById(R.id.btn_signup);
+        mRegisterBtn = findViewById(R.id.profile_save_button);
 
         mUsername = findViewById(R.id.register_username_edit_text);
         mUsernameTextView = findViewById(R.id.register_username_available_text_view);
         mEmail = findViewById(R.id.register_email_edit_text);
         mPassword = findViewById(R.id.register_password_edit_text);
+
+        setupUI();
 
         checkDevicePermissions();
         getTakenUsernames();
@@ -189,7 +199,8 @@ public class ProfileActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 if (confirmValidation()) {
-                    registerUserOnFirebase();
+                    if (mCallerFlag == 0) registerUserOnFirebase();
+                    else if (mCallerFlag == 1) saveProfileToFirebase();
                 }
             }
         });
@@ -198,9 +209,18 @@ public class ProfileActivity extends AppCompatActivity {
         mLoginTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                startActivityForResult(intent, LoginActivity.REQUEST_CREDENTIALS);
-                finish();
+
+                if (mCallerFlag == 0) {
+                    Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                    startActivityForResult(intent, LoginActivity.REQUEST_CREDENTIALS);
+                    finish();
+                }
+
+                else if (mCallerFlag == 1) {
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
+                    finish();
+                }
             }
         });
     }
@@ -344,19 +364,10 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void handlePoliticalLeanText(int progress, double thumbX) {
 
-        String leaningLabel;
+        String label = PoliticalLeaningConversion.handlePoliticalLeaningValue(progress);
 
-        if (progress >= 0 && progress < 14) leaningLabel = "FAR LEFT";
-        else if (progress >= 14 && progress < 28) leaningLabel = "LEFT";
-        else if (progress >= 28 && progress < 42) leaningLabel = "CENTER-LEFT";
-        else if (progress >= 42 && progress <= 58) leaningLabel = "CENTER";
-        else if (progress > 58 && progress <= 72) leaningLabel = "CENTER-RIGHT";
-        else if (progress > 72 && progress <= 86) leaningLabel = "RIGHT";
-        else leaningLabel = "FAR RIGHT";
-
-        mPoliticalLeaningTextView.setText(leaningLabel);
-
-        mPoliticalLeaningTextView.setX((float) thumbX);
+        mPoliticalLeaningTextView.setText(label.toUpperCase());
+        //mPoliticalLeaningTextView.setX((float) thumbX);
 
     }
 
@@ -543,6 +554,11 @@ public class ProfileActivity extends AppCompatActivity {
                         }
                     });
 
+            LoginActivity.profilePictureBytes = image;
+            LoginActivity.username = mUsername.getText().toString();
+            LoginActivity.password = mPassword.getText().toString();
+            LoginActivity.politicalLeaning = mPoliticalLeaningSeekBar.getProgress();
+
         }
 
     }
@@ -561,6 +577,13 @@ public class ProfileActivity extends AppCompatActivity {
                     takenUsernames.add(username);
 
                 }
+
+                // Ignore current user's username if one exists.
+                String currentUsername = LoginActivity.username;
+                Log.d("TEST", "current username: " + currentUsername);
+                if (currentUsername != null) takenUsernames.remove(LoginActivity.username);
+
+                Log.d("TEST", takenUsernames.toString());
 
             }
 
@@ -587,6 +610,37 @@ public class ProfileActivity extends AppCompatActivity {
             }
         }
         else mUsernameTextView.setText("");
+
+    }
+
+    private void setupUI() {
+
+        if (mCallerFlag == 1) {
+            mProfileTitleTextView.setText("UPDATE PROFILE");
+            mEmail.setEnabled(false);
+
+            Bitmap decodedByte;
+            String profilePictureBytesString = LoginActivity.profilePictureBytes;
+
+            if (profilePictureBytesString != null) {
+                byte[] decodedString = Base64.decode(profilePictureBytesString, Base64.DEFAULT);
+                decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                mImageView.setImageBitmap(decodedByte);
+            }
+
+            mUsername.setText(LoginActivity.username);
+            mEmail.setText(LoginActivity.email);
+            mPassword.setText(LoginActivity.password);
+
+            mPoliticalLeaningSeekBar.setProgress(LoginActivity.politicalLeaning);
+            handlePoliticalLeanText(mPoliticalLeaningSeekBar.getProgress(), mPoliticalLeaningSeekBar.getThumb().getBounds().exactCenterX());
+
+            mRegisterBtn.setText("SAVE PROFILE");
+
+            mLoginTextView.setText(getText(R.string.cancel_profile_edits_text));
+
+            handleEnteredUsername();
+        }
 
     }
 
