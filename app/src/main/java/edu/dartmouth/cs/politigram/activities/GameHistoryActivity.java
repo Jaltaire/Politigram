@@ -3,19 +3,27 @@ package edu.dartmouth.cs.politigram.activities;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.ListView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import edu.dartmouth.cs.politigram.GameObject;
 import edu.dartmouth.cs.politigram.GameHistoryAdapter;
 import edu.dartmouth.cs.politigram.R;
+import edu.dartmouth.cs.politigram.utils.StringToHash;
 
 public class GameHistoryActivity extends AppCompatActivity {
 
     ListView listView;
-    final static ArrayList<GameObject> mGameObjects = new ArrayList<>();
+    ArrayList<GameObject> mGameObjects = new ArrayList<>();
 
 
     @Override
@@ -23,28 +31,18 @@ public class GameHistoryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game_history);
 
-        mGameObjects.add(new GameObject("4","05/23/19 6:16"));
-        mGameObjects.add(new GameObject("2","05/23/19 6:19"));
-        mGameObjects.add(new GameObject("2","05/23/19 6:19"));
-        mGameObjects.add(new GameObject("4","05/23/19 6:16"));
-        mGameObjects.add(new GameObject("2","05/23/19 6:19"));
-        mGameObjects.add(new GameObject("2","05/23/19 6:19"));
-        mGameObjects.add(new GameObject("4","05/23/19 6:16"));
-        mGameObjects.add(new GameObject("2","05/23/19 6:19"));
-        mGameObjects.add(new GameObject("2","05/23/19 6:19"));
+        //Set up actionbar
+        setTitle("Game History");
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
-        //Set up toolbar
-        Toolbar toolbar = findViewById(R.id.game_history_toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("Game History");
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
+        mGameObjects = createListOfGameObjects();
+        Log.d(Integer.toString(mGameObjects.size()), "GameObject size");
         listView = findViewById(R.id.game_history_listView);
         final GameHistoryAdapter adapter = new GameHistoryAdapter(this, mGameObjects);
         listView.setAdapter(adapter);
-
-
-
 
     }
 
@@ -56,6 +54,23 @@ public class GameHistoryActivity extends AppCompatActivity {
             finish(); //
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public ArrayList<GameObject> createListOfGameObjects() {
+        Log.d("CreateList","Passing through method");
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        String Email = mAuth.getCurrentUser().getEmail();
+        DataSnapshot dataSnapshot = MainActivity.dataSnap.child("user_" + StringToHash.getHex(Email)).child("game_results");
+        ArrayList<GameObject> list = new ArrayList<>();
+
+        for (DataSnapshot dataSnap : dataSnapshot.getChildren()) {
+            String score = "Score: " + dataSnap.child("score").getValue().toString();
+            String dateTime = dataSnap.child("dateTime").getValue().toString();
+            GameObject gameObject = new GameObject(score, dateTime);
+            list.add(gameObject);
+        }
+
+        return list;
     }
 
 

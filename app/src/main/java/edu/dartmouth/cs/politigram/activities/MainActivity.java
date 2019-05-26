@@ -58,6 +58,26 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.add(R.id.fragment_container, new MainFragment());
         fragmentTransaction.commit();
 
+        //Add onDataChange Listener here, so that constantly updating Classifier and Game Class
+        //Retrieve data from RealTimeDatabase
+        DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        FirebaseUser User = mAuth.getCurrentUser();
+        String mUserId = User.getUid();
+        database1.child("politigram_users")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        dataSnap = dataSnapshot;
+                        Log.d("MainActivity","onDataChange");
+
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+
         atg = AnimationUtils.loadAnimation(this, R.anim.atg);
         atgtwo = AnimationUtils.loadAnimation(this, R.anim.atgtwo);
         atgthree = AnimationUtils.loadAnimation(this, R.anim.atgthree);
@@ -105,24 +125,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //Add onDataChange Listener here, so that constantly updating Classifier and Game Class
-        //Retrieve data from RealTimeDatabase
-        DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        FirebaseUser User = mAuth.getCurrentUser();
-        String mUserId = User.getUid();
-        database1.child("politigram_users")
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        dataSnap = dataSnapshot;
-
-                    }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
-                });
     }
 
     @Override

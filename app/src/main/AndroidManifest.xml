@@ -21,7 +21,8 @@
         <activity
             android:name=".activities.ClassifierResultActivity"
             android:theme="@style/AppTheme" />
-        <activity android:name=".activities.GameHistoryActivity" />
+        <activity android:name=".activities.GameHistoryActivity"
+            android:theme="@style/AppTheme"/>
         <activity
             android:name=".activities.MainActivity"
             android:screenOrientation="portrait"
