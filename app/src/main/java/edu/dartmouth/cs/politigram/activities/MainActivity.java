@@ -37,6 +37,7 @@ import edu.dartmouth.cs.politigram.utils.PoliticalLeaningConversion;
 public class MainActivity extends AppCompatActivity {
 
     ImageView mProfilePictureImageView;
+    public static DataSnapshot dataSnap;
 
     TextView mUsername;
     TextView mPoliticalLeaning;
@@ -110,10 +111,11 @@ public class MainActivity extends AppCompatActivity {
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         FirebaseUser User = mAuth.getCurrentUser();
         String mUserId = User.getUid();
-        database1.child("user_" + mUserId).child("classifier_results")
+        database1.child("politigram_users")
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        dataSnap = dataSnapshot;
 
                     }
                     @Override

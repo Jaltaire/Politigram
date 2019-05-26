@@ -131,6 +131,7 @@ public class ClassifierFragment extends android.app.Fragment {
         });
 
         mHistoryButton.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(getContext(), ClassifierHistoryActivity.class);
