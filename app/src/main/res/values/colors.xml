@@ -16,4 +16,5 @@
   <color name="base">#AAAAAA</color>
   <color name="iron">#CCCCCC</color>
   <color name="white">#FFFFFF</color>
+  <color name="teal">#008080</color>
 </resources>

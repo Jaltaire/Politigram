@@ -24,6 +24,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -161,9 +162,9 @@ public class GameFragment extends Fragment {
                 TextView msg = new TextView(getActivity());
                 msg.setText("CONGRATULATIONS!" + "\n" + "YOU'VE COMPLETED THE GAME!");
                 msg.setGravity(Gravity.CENTER_HORIZONTAL);
-                msg.setTextSize(20);
+                msg.setTextSize(30);
                 msg.setTypeface(null, Typeface.BOLD);
-                msg.setTextColor(getResources().getColor(R.color.primary));
+                msg.setTextColor(getResources().getColor(R.color.teal));
                 builder.setView(msg);;
 //                builder.setMessage("YOU'VE WON THE GAME WITH A SCORE OF " + score + "!");
                 builder.setPositiveButton("Start New Game", new DialogInterface.OnClickListener() {
@@ -198,14 +199,14 @@ public class GameFragment extends Fragment {
             }
 
         }else{
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(getActivity());
             TextView msg = new TextView(getActivity());
-            msg.setText("GAME OVER" + "\n" + "Your score was " + score + ". Thanks for playing!");
+            msg.setText("SORRY GAME OVER!" + "\n" + "Your Score Is " + score);
             msg.setGravity(Gravity.CENTER_HORIZONTAL);
-            msg.setTextSize(20);
+            msg.setTextSize(30);
             msg.setTypeface(null, Typeface.BOLD);
-            msg.setTextColor(getResources().getColor(R.color.primary));
-            builder.setView(msg);;
+            msg.setTextColor(getResources().getColor(R.color.teal));
+            builder.setView(msg);
             builder.setPositiveButton("Start New Game", new DialogInterface.OnClickListener() {
                 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
                 public void onClick(DialogInterface dialog, int id) {
