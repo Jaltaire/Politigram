@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Typeface;
 import android.media.Image;
 import android.net.Uri;
 import android.os.Build;
@@ -16,6 +17,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.Base64;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +34,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.text.SimpleDateFormat;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -100,6 +103,7 @@ public class GameFragment extends Fragment {
 
 
         leansLeftBtn.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
             public void onClick(View v) {
                 Clicked(0);
@@ -108,6 +112,7 @@ public class GameFragment extends Fragment {
         });
 
         leansRightBtn.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
             public void onClick(View v) {
                 Clicked(1);
@@ -145,14 +150,22 @@ public class GameFragment extends Fragment {
         return 1;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     public void Clicked(int politicalBent){
         if(politicalBent == getPoliticalBent(Integer.parseInt(mapList.get(indexInList).get("political_bent_score")))) {
             score +=1;
             indexInList += 1;
             if(indexInList == mapList.size()){
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                builder.setTitle("CONGRATULATIONS");
-                builder.setMessage("YOU'VE WON THE GAME WITH A SCORE OF " + score + "!");
+//                builder.setTitle("CONGRATULATIONS");
+                TextView msg = new TextView(getActivity());
+                msg.setText("CONGRATULATIONS!" + "\n" + "YOU'VE COMPLETED THE GAME!");
+                msg.setGravity(Gravity.CENTER_HORIZONTAL);
+                msg.setTextSize(20);
+                msg.setTypeface(null, Typeface.BOLD);
+                msg.setTextColor(getResources().getColor(R.color.primary));
+                builder.setView(msg);;
+//                builder.setMessage("YOU'VE WON THE GAME WITH A SCORE OF " + score + "!");
                 builder.setPositiveButton("Start New Game", new DialogInterface.OnClickListener() {
                     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
                     public void onClick(DialogInterface dialog, int id) {
@@ -186,8 +199,13 @@ public class GameFragment extends Fragment {
 
         }else{
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setTitle("GAME OVER");
-            builder.setMessage("Your score was " + score + ". Thanks for Playing!");
+            TextView msg = new TextView(getActivity());
+            msg.setText("GAME OVER" + "\n" + "Your score was " + score + ". Thanks for playing!");
+            msg.setGravity(Gravity.CENTER_HORIZONTAL);
+            msg.setTextSize(20);
+            msg.setTypeface(null, Typeface.BOLD);
+            msg.setTextColor(getResources().getColor(R.color.primary));
+            builder.setView(msg);;
             builder.setPositiveButton("Start New Game", new DialogInterface.OnClickListener() {
                 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
                 public void onClick(DialogInterface dialog, int id) {
@@ -212,6 +230,7 @@ public class GameFragment extends Fragment {
             });
             builder.show();
         }
+
 
     }
 
