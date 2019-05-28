@@ -1,4 +1,4 @@
-package edu.dartmouth.cs.politigram;
+package edu.dartmouth.cs.politigram.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -8,6 +8,9 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+
+import edu.dartmouth.cs.politigram.models.BoardObject;
+import edu.dartmouth.cs.politigram.R;
 
 //Adapter for ListView in GameHistory
 public class BoardAdapter extends BaseAdapter {

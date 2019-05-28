@@ -63,7 +63,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.dartmouth.cs.politigram.ClassifierObject;
+import edu.dartmouth.cs.politigram.models.ClassifierObject;
 import edu.dartmouth.cs.politigram.R;
 import edu.dartmouth.cs.politigram.activities.ClassifierHistoryActivity;
 import edu.dartmouth.cs.politigram.activities.ClassifierResultActivity;
