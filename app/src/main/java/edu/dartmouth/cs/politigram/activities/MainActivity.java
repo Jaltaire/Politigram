@@ -155,4 +155,13 @@ public class MainActivity extends AppCompatActivity {
         // Called in onResume() such that header UI can be updated if changes are made to profile.
         configureUI();
     }
+
+    // When back button is pressed, return to home screen on Android rather than signing out of Politigram account.
+    @Override
+    public void onBackPressed() {
+        Intent homeIntent = new Intent(Intent.ACTION_MAIN);
+        homeIntent.addCategory( Intent.CATEGORY_HOME );
+        homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(homeIntent);
+    }
 }

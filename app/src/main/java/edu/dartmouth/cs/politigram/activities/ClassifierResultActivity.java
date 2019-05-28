@@ -17,10 +17,12 @@ public class ClassifierResultActivity extends AppCompatActivity {
     private ImageView mImageView;
     private TextView mLabelTextView;
     private TextView mConfidenceTextView;
+    private TextView mStateTextView;
 
     private Bitmap mBitmap;
     private String mLabel;
     private String mConfidence;
+    private String mState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +38,7 @@ public class ClassifierResultActivity extends AppCompatActivity {
         mImageView = findViewById(R.id.classification_result_image_view);
         mLabelTextView = findViewById(R.id.classification_result_label);
         mConfidenceTextView = findViewById(R.id.classification_result_confidence);
+        mStateTextView = findViewById(R.id.classification_state);
 
         Intent intent = getIntent();
         byte[] byteArray = intent.getByteArrayExtra(ClassifierFragment.INTENT_IMAGE_KEY);
@@ -43,6 +46,8 @@ public class ClassifierResultActivity extends AppCompatActivity {
 
         mLabel = intent.getStringExtra(ClassifierFragment.INTENT_LABEL_KEY);
         mConfidence = intent.getStringExtra(ClassifierFragment.INTENT_CONFIDENCE_KEY);
+
+        mState = intent.getStringExtra(ClassifierFragment.INTENT_STATE_KEY);
 
         configureUI();
 
@@ -65,6 +70,10 @@ public class ClassifierResultActivity extends AppCompatActivity {
         mImageView.setImageBitmap(mBitmap);
         mLabelTextView.setText(mLabel);
         mConfidenceTextView.setText("CONFIDENCE: " + mConfidence);
+
+        if (mState != null) {
+            mStateTextView.setText("Classifier prediction scaled according to voter data from " + mState + ".");
+        }
 
     }
 }

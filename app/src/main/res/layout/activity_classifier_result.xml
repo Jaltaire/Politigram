@@ -38,5 +38,15 @@
         android:textSize="14sp"
         android:textColor="#000000"/>
 
+    <TextView
+        android:id="@+id/classification_state"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:padding="5pt"
+        android:text=""
+        android:textStyle="italic"
+        android:gravity="center"
+        android:textSize="10sp"
+        android:textColor="#000000"/>
 
 </LinearLayout>
