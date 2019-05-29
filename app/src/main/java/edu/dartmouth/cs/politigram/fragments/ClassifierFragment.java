@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -17,12 +16,12 @@ import android.graphics.drawable.BitmapDrawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
@@ -45,7 +44,9 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.FaceDetector;
@@ -53,8 +54,11 @@ import com.google.android.gms.vision.face.Landmark;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.soundcloud.android.crop.Crop;
 
 import org.json.JSONArray;
@@ -69,16 +73,22 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
+import edu.dartmouth.cs.politigram.activities.LoginActivity;
+import edu.dartmouth.cs.politigram.activities.ProfileActivity;
+import edu.dartmouth.cs.politigram.models.ClassifierEntry;
 import edu.dartmouth.cs.politigram.models.ClassifierObject;
 import edu.dartmouth.cs.politigram.R;
 import edu.dartmouth.cs.politigram.activities.ClassifierHistoryActivity;
 import edu.dartmouth.cs.politigram.activities.ClassifierResultActivity;
-import edu.dartmouth.cs.politigram.activities.LoginActivity;
+import edu.dartmouth.cs.politigram.models.ProfileEntry;
 import edu.dartmouth.cs.politigram.utils.ReferenceVariables;
+import edu.dartmouth.cs.politigram.utils.StringToHash;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -117,6 +127,10 @@ public class ClassifierFragment extends android.app.Fragment {
 
     Double scaledScore = null;
     String scaledLabel = null;
+
+    final FirebaseDatabase database = FirebaseDatabase.getInstance();
+    DatabaseReference ref = database.getReference();
+    DatabaseReference usersRef = ref.child(ProfileActivity.FIREBASE_USERS_PATH);
 
     public ClassifierFragment() {
         // Required empty public constructor
@@ -159,19 +173,6 @@ public class ClassifierFragment extends android.app.Fragment {
 
         checkDevicePermissions();
         //classifyPhoto();
-
-        String image = "image";
-        String result = "liberal";
-
-        //Create ClassifierObject once we have the score
-        ClassifierObject classifierObject = new ClassifierObject(image, result);
-
-        //When photo is selected, add classifierObject to Firebase
-        DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        FirebaseUser User = mAuth.getCurrentUser();
-        String mUserId = User.getUid();
-        database1.child("user_" + mUserId).child("classifier_results").push().setValue(classifierObject);
 
     }
 
@@ -573,16 +574,16 @@ public class ClassifierFragment extends android.app.Fragment {
                                                     Log.d("TEST", label);
                                                     Log.d("TEST", score);
 
-                                                    launchClassifierResultActivity(label, score, state);
+                                                    processClassifierResult(label, score, state);
                                                 }
 
                                                 else {
-                                                    launchClassifierResultActivity(label, score, null);
+                                                    processClassifierResult(label, score, null);
                                                 }
                                             }
 
                                             else {
-                                                launchClassifierResultActivity(label, score, null);
+                                                processClassifierResult(label, score, null);
                                             }
 
                                         }
@@ -599,14 +600,14 @@ public class ClassifierFragment extends android.app.Fragment {
             }
 
             else {
-                launchClassifierResultActivity(classifierLabel, classifierScore, null);
+                processClassifierResult(classifierLabel, classifierScore, null);
             }
 
         }
 
         // If user has not granted locations permission, show the user the normal classifier results.
         else {
-            launchClassifierResultActivity(classifierLabel, classifierScore, null);
+            processClassifierResult(classifierLabel, classifierScore, null);
         }
 
     }
@@ -702,7 +703,37 @@ public class ClassifierFragment extends android.app.Fragment {
 
     }
 
-    private void launchClassifierResultActivity(String label, String score, String state) {
+    private void processClassifierResult(final String label, final String score, String state) {
+
+        Bitmap bitmap = mImageCaptureBitmap;
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG,100, bos);
+        byte[] bb = bos.toByteArray();
+        final String image = Base64.encodeToString(bb, Base64.NO_WRAP);
+
+        final Set<String> storedImageBytes = new HashSet<String>();
+
+        usersRef.child("user_" + StringToHash.getHex(LoginActivity.email)).child("classifier_results").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                for (DataSnapshot entry : dataSnapshot.getChildren()) {
+                    String imageBytes = entry.child("imageBytes").getValue(String.class);
+                    Log.d("TEST", "image: " + imageBytes);
+                    storedImageBytes.add(imageBytes);
+                }
+
+                if (!storedImageBytes.contains(image)) {
+                    uploadClassifierResult(image, label, score);
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.d("TEST", "Could not get data from Firebase");
+            }
+        });
 
         Intent intent = new Intent(getContext(), ClassifierResultActivity.class);
         intent.putExtra(INTENT_IMAGE_KEY, mImageCaptureByteArray);
@@ -710,6 +741,25 @@ public class ClassifierFragment extends android.app.Fragment {
         intent.putExtra(INTENT_CONFIDENCE_KEY, score);
         intent.putExtra(INTENT_STATE_KEY, state);
         startActivity(intent);
+
+    }
+
+    private void uploadClassifierResult(String image, String label, String score) {
+
+        ClassifierEntry mClassifierEntry = new ClassifierEntry(image, label, score);
+
+        usersRef.child("user_" + StringToHash.getHex(LoginActivity.email)).child("classifier_results").child(Long.toString(System.currentTimeMillis())).setValue(mClassifierEntry)
+                .addOnCompleteListener(getActivity(), new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Log.d("TEST", "Successfully added classifier entry in Firebase");
+                        } else {
+                            if (task.getException() != null)
+                                Log.d("TEST", "Firebase insertion failed");
+                        }
+                    }
+                });
 
     }
 

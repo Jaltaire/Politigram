@@ -162,8 +162,9 @@
                 android:orientation="vertical">
 
                 <ImageView
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
+                    android:id="@+id/classifier_tab_image_view"
+                    android:layout_width="220px"
+                    android:layout_height="220px"
                     android:layout_marginBottom="8dp"
                     android:src="@drawable/iclist" />
 
@@ -186,8 +187,9 @@
                 android:orientation="vertical">
 
                 <ImageView
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
+                    android:id="@+id/game_tab_image_view"
+                    android:layout_width="220px"
+                    android:layout_height="220px"
                     android:layout_marginBottom="8dp"
                     android:src="@drawable/icapps" />
 
@@ -210,8 +212,9 @@
                 android:orientation="vertical">
 
                 <ImageView
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
+                    android:id="@+id/leaderboard_tab_image_view"
+                    android:layout_width="220px"
+                    android:layout_height="220px"
                     android:layout_marginBottom="8dp"
                     android:src="@drawable/icnet" />
 
@@ -234,8 +237,9 @@
                 android:orientation="vertical">
 
                 <ImageView
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
+                    android:id="@+id/settings_tab_image_view"
+                    android:layout_width="220px"
+                    android:layout_height="220px"
                     android:layout_marginBottom="8dp"
                     android:src="@drawable/icplug" />
 
