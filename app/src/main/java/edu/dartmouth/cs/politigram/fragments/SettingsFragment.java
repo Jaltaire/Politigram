@@ -79,12 +79,12 @@ public class SettingsFragment extends PreferenceFragment {
                 return true;
             }
         });
+
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         final String Email = mAuth.getCurrentUser().getEmail();
         SwitchPreference privacy = (SwitchPreference) findPreference("PrivacySetting");
-        if(MainActivity.dataSnap.child("user_"+ StringToHash.getHex(Email)).child("profile_data").child("privacy").exists()) {
-            privacy.setChecked(MainActivity.dataSnap.child("user_" + StringToHash.getHex(Email)).child("profile_data").child("privacy")
-                    .getValue(Boolean.class));
+        if (MainActivity.dataSnap.child("user_"+ StringToHash.getHex(Email)).child("profile_data").child("privacy").exists()) {
+            privacy.setChecked(MainActivity.dataSnap.child("user_" + StringToHash.getHex(Email)).child("profile_data").child("privacy").getValue(Boolean.class));
         }
     }
         //Handles cases for when unit_preference, sign_out, and webpage and clicked respectively

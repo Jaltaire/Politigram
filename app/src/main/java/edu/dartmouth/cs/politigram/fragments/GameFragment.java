@@ -115,14 +115,6 @@ public class GameFragment extends Fragment {
             }
         });
 
-
-//        String score = "0";
-//        String dateTime = "0";
-//        //Create GameObject once we have the score
-
-
-
-
     }
 
     public Map<String,String> createMapForUserPhotos(){
