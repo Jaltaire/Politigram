@@ -24,7 +24,7 @@
 
     <string name="privacy_setting_key">PrivacySetting</string>
     <string name="privacy_setting_summary">Your info won\'t be used by Politigram or listed on the leaderboard.</string>
-    <string name="privacy_setting_title">Privacy Setting</string>
+    <string name="privacy_setting_title">Privacy Mode</string>
     <string name="application_settings_preference_category">Application Settings</string>
     <string name="account_settings_preference_category">Account Settings</string>
     <string name="sign_out_title">Sign Out</string>

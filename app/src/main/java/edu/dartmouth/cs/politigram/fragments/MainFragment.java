@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import edu.dartmouth.cs.politigram.R;
 
+// Initial fragment within MainActivity to prompt user to try classifier feature of Politigram.
 public class MainFragment extends Fragment {
 
     TextView nameuser, walletuser, review, network, plugins, myapps, mainmenus,

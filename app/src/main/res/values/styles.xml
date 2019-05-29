@@ -34,4 +34,12 @@
         <item name="android:background">@color/primary</item>
     </style>
 
+    <style name="WhiteAccent">
+        <item name="colorAccent">#FFFFFF</item>
+    </style>
+
+    <style name="TealAccent">
+        <item name="colorAccent">#44E6C6</item>
+    </style>
+
 </resources>

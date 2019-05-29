@@ -2,6 +2,7 @@ package edu.dartmouth.cs.politigram.utils;
 
 public class PoliticalLeaningConversion {
 
+    // Handle text for political leaning relative to SeekBar position.
     public static String handlePoliticalLeaningValue(int leaning) {
 
         String leaningLabel;

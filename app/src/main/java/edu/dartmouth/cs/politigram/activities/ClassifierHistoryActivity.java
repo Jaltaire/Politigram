@@ -66,6 +66,7 @@ public class ClassifierHistoryActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    // Set up the RecyclerView with a view adapter.
     public void setupRecyclerView() {
 
         // Set up the RecyclerView
@@ -86,7 +87,7 @@ public class ClassifierHistoryActivity extends AppCompatActivity {
 
     }
 
-    // Add each manual entry component to the RecyclerView.
+    // Add data from each Firebase DataSnapshot of a past classification to the RecyclerView.
     public void addToRecyclerView(DataSnapshot dataSnapshot) {
 
         String imageBytes = dataSnapshot.child("imageBytes").getValue(String.class);
@@ -101,6 +102,7 @@ public class ClassifierHistoryActivity extends AppCompatActivity {
 
     }
 
+    // Get past classifier results from Firebase.
     private void getClassifierResults() {
 
         DatabaseReference usersRef = ref.child(ProfileActivity.FIREBASE_USERS_PATH);

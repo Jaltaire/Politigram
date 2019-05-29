@@ -60,7 +60,7 @@ import edu.dartmouth.cs.politigram.utils.PoliticalLeaningConversion;
 import edu.dartmouth.cs.politigram.utils.StringToHash;
 
 
-// Handles new user registration.
+// Handles new user registration and updates to existing profile..
 public class ProfileActivity extends AppCompatActivity {
     private static final String TAG = "ProfileActivity";
 
@@ -563,6 +563,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     }
 
+    // Get list of all taken usernames, such that user can see while typing one if it is available.
     private void getTakenUsernames() {
 
         DatabaseReference usersRef = ref.child(ProfileActivity.FIREBASE_USERS_PATH);
@@ -595,6 +596,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     }
 
+    // Display username availability results to the user.
     private void handleEnteredUsername() {
 
         String usernameText = mUsername.getText().toString();
@@ -613,6 +615,8 @@ public class ProfileActivity extends AppCompatActivity {
 
     }
 
+    // Set up ProfileActivity UI if called from SettingsActivity.
+    // Loads data stored in static variables in LoginActivity that were saved if Firebase Authentication was successful.
     private void setupUI() {
 
         if (mCallerFlag == 1) {

@@ -6,6 +6,8 @@ import java.security.NoSuchAlgorithmException;
 
 public class StringToHash {
 
+    // Compute hexadecimal hash for an email address.
+    // Used to store user entries in Firebase.
     public static String getHex(String arg) {
         return String.format("%040x", new BigInteger(1, arg.getBytes(/*YOUR_CHARSET?*/)));
     }

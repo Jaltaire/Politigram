@@ -34,6 +34,7 @@ import edu.dartmouth.cs.politigram.utils.StringToHash;
 
 import static android.content.Context.MODE_PRIVATE;
 
+// Handle app and account settings in Politigram.
 public class SettingsFragment extends PreferenceFragment {
 
     Preference mEditProfile;
@@ -83,6 +84,8 @@ public class SettingsFragment extends PreferenceFragment {
             }
         });
 
+        // Update the privacy preference flag on Firebase according to the user's selection.
+        // This way, if user logs out or logs in on another device, privacy preferences will be maintained.
         DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         final String Email = mAuth.getCurrentUser().getEmail();

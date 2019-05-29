@@ -35,6 +35,7 @@ import edu.dartmouth.cs.politigram.models.BoardObject;
 import edu.dartmouth.cs.politigram.R;
 import edu.dartmouth.cs.politigram.activities.MainActivity;
 
+// Fragment within MainActivity to control leaderboard aspects of Politigram.
 public class LeaderboardFragment extends Fragment {
 
     ArrayList<BoardObject> list;
@@ -77,6 +78,7 @@ public class LeaderboardFragment extends Fragment {
 
     }
 
+    // Sort users without private mode enabled by their high scores.
     @RequiresApi(api = Build.VERSION_CODES.N)
     public ArrayList<BoardObject> createSortedListOfBoardObjects(DataSnapshot dataSnapshot) {
         ArrayList<BoardObject> listOfBoardObjects = new ArrayList<>();
@@ -108,6 +110,7 @@ public class LeaderboardFragment extends Fragment {
         return listOfBoardObjects;
     }
 
+    // If privacy preference is changed, update the fragment accordingly when it re-shown after exiting settings.
     @Override
     public void onResume() {
         super.onResume();

@@ -1,6 +1,8 @@
 package edu.dartmouth.cs.politigram.fragments;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.content.ActivityNotFoundException;
@@ -33,6 +35,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -52,8 +55,6 @@ import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.FaceDetector;
 import com.google.android.gms.vision.face.Landmark;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -83,16 +84,15 @@ import edu.dartmouth.cs.politigram.activities.LoginActivity;
 import edu.dartmouth.cs.politigram.activities.MainActivity;
 import edu.dartmouth.cs.politigram.activities.ProfileActivity;
 import edu.dartmouth.cs.politigram.models.ClassifierEntry;
-import edu.dartmouth.cs.politigram.models.ClassifierObject;
 import edu.dartmouth.cs.politigram.R;
 import edu.dartmouth.cs.politigram.activities.ClassifierHistoryActivity;
 import edu.dartmouth.cs.politigram.activities.ClassifierResultActivity;
-import edu.dartmouth.cs.politigram.models.ProfileEntry;
 import edu.dartmouth.cs.politigram.utils.ReferenceVariables;
 import edu.dartmouth.cs.politigram.utils.StringToHash;
 
 import static android.app.Activity.RESULT_OK;
 
+// Fragment within MainActivity to control classifier aspects of Politigram.
 public class ClassifierFragment extends android.app.Fragment {
 
     private static final int REQUEST_CODE_TAKE_FROM_CAMERA = 0;
@@ -110,6 +110,9 @@ public class ClassifierFragment extends android.app.Fragment {
 
     private Bitmap mImageCaptureBitmap;
     private byte[] mImageCaptureByteArray;
+
+    private View mFragmentView;
+    private ProgressBar mProgressBar;
 
     private ImageView mImageView;
 
@@ -133,6 +136,11 @@ public class ClassifierFragment extends android.app.Fragment {
     DatabaseReference ref = database.getReference();
     DatabaseReference usersRef = ref.child(ProfileActivity.FIREBASE_USERS_PATH);
 
+    SparseArray<Face> faces;
+
+    CheckForFacesTask checkForFacesTask;
+    PerformClassificationTask performClassificationTask;
+
     public ClassifierFragment() {
         // Required empty public constructor
     }
@@ -147,6 +155,9 @@ public class ClassifierFragment extends android.app.Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        mFragmentView = view.findViewById(R.id.classifier_fragment_constraint_layout);
+        mProgressBar = view.findViewById(R.id.classifier_fragment_progress);
 
         mImageView = view.findViewById(R.id.classifier_fragment_image_view);
 
@@ -179,7 +190,7 @@ public class ClassifierFragment extends android.app.Fragment {
 
     }
 
-    //Check if camera and storage permissions have been granted.
+    //Check if camera, storage, and location permissions have been granted.
     private void checkDevicePermissions() {
         if (Build.VERSION.SDK_INT < 23)
             return;
@@ -189,7 +200,7 @@ public class ClassifierFragment extends android.app.Fragment {
         }
     }
 
-    // Prompt user to provide permission to access camera and external storage.
+    // Prompt user to provide permission to access camera, external storage, and device location.
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (grantResults[0] == PackageManager.PERMISSION_DENIED || grantResults[1] == PackageManager.PERMISSION_DENIED || grantResults[2] == PackageManager.PERMISSION_DENIED || grantResults[3] == PackageManager.PERMISSION_DENIED) { // If storage or camera permissions have not been granted...
@@ -334,11 +345,11 @@ public class ClassifierFragment extends android.app.Fragment {
 
     }
 
+    // Check that one face is present in the photo.
+    // Prediction will be inaccurate if it does not match training data of single-person images.
     private void checkForFace() {
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Toast.makeText(getContext(), "Checking for faces in photo...", Toast.LENGTH_SHORT).show();
-        }
+        Toast.makeText(getContext(), "Checking for faces in photo...", Toast.LENGTH_SHORT).show();
 
         //mImageView.setImageResource(0);
         //mImageView.setImageURI(mImageCaptureURI);
@@ -347,61 +358,10 @@ public class ClassifierFragment extends android.app.Fragment {
 
             mImageCaptureBitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), mImageCaptureURI);
 
-            Bitmap tempBitmap = Bitmap.createBitmap(mImageCaptureBitmap.getWidth(), mImageCaptureBitmap.getHeight(), Bitmap.Config.RGB_565);
-            Canvas tempCanvas = new Canvas(tempBitmap);
+            checkForFacesTask = new CheckForFacesTask();
+            checkForFacesTask.execute();
+            showProgress(true);
 
-            tempCanvas.drawBitmap(mImageCaptureBitmap, 0, 0, null);
-
-            FaceDetector detector = null;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                detector = new FaceDetector.Builder(getContext())
-                        .setTrackingEnabled(false)
-                        .setLandmarkType(FaceDetector.ALL_LANDMARKS)
-                        .build();
-
-                Frame frame = new Frame.Builder().setBitmap(mImageCaptureBitmap).build();
-
-                SparseArray<Face> faces = detector.detect(frame);
-                Log.d("TEST", Integer.toString(faces.size()));
-
-                Paint paint = new Paint();
-                paint.setColor(Color.RED);
-
-                int scale = 1;
-
-                for (int i = 0; i < faces.size(); ++i) {
-                    Face face = faces.valueAt(i);
-                    for (Landmark landmark : face.getLandmarks()) {
-                        int cx = (int) (landmark.getPosition().x * scale);
-                        int cy = (int) (landmark.getPosition().y * scale);
-                        tempCanvas.drawCircle(cx, cy, 10, paint);
-                    }
-                }
-
-                detector.release();
-
-                mImageView.setImageDrawable(new BitmapDrawable(getResources(), tempBitmap));
-
-                if (faces.size() != 1) {
-
-                    mPredictionButton.setText("SELECT NEW PHOTO");
-                    mPredictionButton.setBackground(getResources().getDrawable(R.drawable.bgbtnguide_invalid));
-
-                    if (faces.size() == 0) {
-                        Toast.makeText(getContext(), "No face detected! Select a new photo.", Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(getContext(), "Multiple faces detected! Select a new photo.", Toast.LENGTH_LONG).show();
-                    }
-
-                } else {
-
-                    mPredictionButton.setText("CLASSIFY PHOTO");
-                    mPredictionButton.setBackground(getResources().getDrawable(R.drawable.bgbtnguide_valid));
-                    mAllowClassification = true;
-
-                }
-
-            }
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -409,15 +369,90 @@ public class ClassifierFragment extends android.app.Fragment {
 
     }
 
+    // AsyncTask to check for presence of face in background. Avoids blocking UI thread.
+    private class CheckForFacesTask extends AsyncTask<String, String, String> {
+        protected String doInBackground(String... urls) {
+
+            FaceDetector detector = null;
+            detector = new FaceDetector.Builder(getContext())
+                    .setTrackingEnabled(false)
+                    .setLandmarkType(FaceDetector.ALL_LANDMARKS)
+                    .build();
+
+            Frame frame = new Frame.Builder().setBitmap(mImageCaptureBitmap).build();
+
+            faces = detector.detect(frame);
+
+            detector.release();
+
+            return null;
+
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+
+            Log.d("TEST", Integer.toString(faces.size()));
+
+            Bitmap tempBitmap = Bitmap.createBitmap(mImageCaptureBitmap.getWidth(), mImageCaptureBitmap.getHeight(), Bitmap.Config.RGB_565);
+            Canvas tempCanvas = new Canvas(tempBitmap);
+
+            tempCanvas.drawBitmap(mImageCaptureBitmap, 0, 0, null);
+
+            Paint paint = new Paint();
+            paint.setColor(Color.RED);
+
+            int scale = 1;
+
+            for (int i = 0; i < faces.size(); ++i) {
+                Face face = faces.valueAt(i);
+                for (Landmark landmark : face.getLandmarks()) {
+                    int cx = (int) (landmark.getPosition().x * scale);
+                    int cy = (int) (landmark.getPosition().y * scale);
+                    tempCanvas.drawCircle(cx, cy, 10, paint);
+                }
+            }
+
+            mImageView.setImageDrawable(new BitmapDrawable(getResources(), tempBitmap));
+
+            if (faces.size() != 1) {
+
+                mPredictionButton.setText("SELECT NEW PHOTO");
+                mPredictionButton.setBackground(getResources().getDrawable(R.drawable.bgbtnguide_invalid));
+
+                if (faces.size() == 0) {
+                    Toast.makeText(getContext(), "No face detected! Select a new photo.", Toast.LENGTH_LONG).show();
+                    showProgress(false);
+                } else {
+                    Toast.makeText(getContext(), "Multiple faces detected! Select a new photo.", Toast.LENGTH_LONG).show();
+                    showProgress(false);
+                }
+
+            } else {
+
+                mPredictionButton.setText("CLASSIFY PHOTO");
+                mPredictionButton.setBackground(getResources().getDrawable(R.drawable.bgbtnguide_valid));
+                mAllowClassification = true;
+                showProgress(false);
+
+            }
+
+        }
+    }
+
+    // Classify the photo using Google's AutoML Vision platform.
     private void classifyPhoto() {
 
         Log.d("TEST", "attempting to classify photo");
-        new PerformClassification().execute();
-
+        performClassificationTask = new PerformClassificationTask();
+        performClassificationTask.execute();
+        showProgress(true);
 
     }
 
-    private class PerformClassification extends AsyncTask<String, String, String> {
+    // Perform AutoML Vision classification in the background in order to avoid blocking UI thread.
+    private class PerformClassificationTask extends AsyncTask<String, String, String> {
         protected String doInBackground(String... urls) {
 
             try {
@@ -457,6 +492,7 @@ public class ClassifierFragment extends android.app.Fragment {
 
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    showProgress(false);
                 }
 
                 JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
@@ -474,6 +510,8 @@ public class ClassifierFragment extends android.app.Fragment {
                                         mPredictionButton.setText("SELECT NEW PHOTO");
                                         mPredictionButton.setBackground(getResources().getDrawable(R.drawable.bgbtnguide_invalid));
                                         mAllowClassification = false;
+                                        showProgress(false);
+
                                     } else {
 
                                         JSONArray jsonArray = response.getJSONArray("payload");
@@ -490,6 +528,7 @@ public class ClassifierFragment extends android.app.Fragment {
 
                                 } catch (JSONException e) {
                                     e.printStackTrace();
+                                    showProgress(false);
                                 }
 
                             }
@@ -499,9 +538,8 @@ public class ClassifierFragment extends android.app.Fragment {
                             public void onErrorResponse(VolleyError error) {
                                 // TODO: Handle error
                                 Log.d("TEST", "POST request unsuccessful");
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                    Toast.makeText(getContext(), "Classification unsuccessful. Try again.", Toast.LENGTH_LONG).show();
-                                }
+                                Toast.makeText(getContext(), "Classification unsuccessful. Try again.", Toast.LENGTH_LONG).show();
+                                showProgress(false);
                                 error.printStackTrace();
                             }
 
@@ -526,6 +564,7 @@ public class ClassifierFragment extends android.app.Fragment {
 
             } catch (IOException e) {
                 e.printStackTrace();
+                showProgress(false);
             }
 
             return null;
@@ -533,6 +572,9 @@ public class ClassifierFragment extends android.app.Fragment {
 
     }
 
+    // If current location can be acquired, use it to improve the classifier prediction by referencing 2016 U.S. presidential election voter data by state.
+    // Ignore scaling with location data if location permissions have not been granted.
+    // Only perform scaling for user-snapped photos (i.e. photos not selected from gallery), since metadata is more likely to be valid, whereas gallery metadata may not be accurate (i.e. for an image downloaded from the Internet).
     private void handleCurrentLocation(final String classifierLabel, final String classifierScore) {
 
         Log.d("TEST", "handling current location");
@@ -615,6 +657,7 @@ public class ClassifierFragment extends android.app.Fragment {
 
     }
 
+    // Scale classifier values according to voting trends by state.
     private void computeScaledValues(String classifierLabel, double classifierScore, String currentState) {
 
         Log.d("TEST", "computing scaled values");
@@ -706,6 +749,7 @@ public class ClassifierFragment extends android.app.Fragment {
 
     }
 
+    // Process the full classifier result (including after scaling), and then launch ClassifierResultActivity to display the results to the user.
     private void processClassifierResult(final String label, final String score, String state) {
 
         Bitmap bitmap = mImageCaptureBitmap;
@@ -745,8 +789,11 @@ public class ClassifierFragment extends android.app.Fragment {
         intent.putExtra(INTENT_STATE_KEY, state);
         startActivity(intent);
 
+        showProgress(false);
+
     }
 
+    // Add classifier result to history on Firebase.
     private void uploadClassifierResult(String image, String label, String score) {
 
         ClassifierEntry mClassifierEntry = new ClassifierEntry(image, label, score);
@@ -764,6 +811,42 @@ public class ClassifierFragment extends android.app.Fragment {
                     }
                 });
 
+    }
+
+    private void showProgress(final boolean show) {
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+        mFragmentView.setVisibility(show ? View.GONE : View.VISIBLE);
+        mFragmentView.animate().setDuration(shortAnimTime).alpha(
+                show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mFragmentView.setVisibility(show ? View.GONE : View.VISIBLE);
+            }
+        });
+
+        mProgressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        mProgressBar.animate().setDuration(shortAnimTime).alpha(
+                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mProgressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
+    }
+
+    // Cancel active AsyncTasks if active fragment changes since original fragment will no longer be attached to the activity.
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        if (checkForFacesTask != null && checkForFacesTask.getStatus().equals(AsyncTask.Status.RUNNING)) {
+            checkForFacesTask.cancel(true);
+        }
+
+        if (performClassificationTask != null && performClassificationTask.getStatus().equals(AsyncTask.Status.RUNNING)) {
+            performClassificationTask.cancel(true);
+        }
     }
 
 }

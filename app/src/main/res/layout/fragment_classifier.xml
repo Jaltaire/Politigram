@@ -2,12 +2,13 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/frameLayout2"
+    android:id="@+id/classifier_fragment_frame_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragments.MainFragment">
 
     <android.support.constraint.ConstraintLayout
+        android:id="@+id/classifier_fragment_constraint_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -67,5 +68,22 @@
 
 
     </android.support.constraint.ConstraintLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center">
+
+        <ProgressBar
+            android:id="@+id/classifier_fragment_progress"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone"
+            android:layout_gravity="center"
+            android:theme="@style/TealAccent"/>
+
+    </LinearLayout>
 
 </FrameLayout>

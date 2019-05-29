@@ -1,20 +1,27 @@
 package edu.dartmouth.cs.politigram.fragments;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.AsyncTaskLoader;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.Base64;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,8 +29,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.google.android.gms.vision.Frame;
+import com.google.android.gms.vision.face.Face;
+import com.google.android.gms.vision.face.FaceDetector;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -37,6 +48,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import edu.dartmouth.cs.politigram.models.GameObject;
 import edu.dartmouth.cs.politigram.R;
@@ -44,7 +56,16 @@ import edu.dartmouth.cs.politigram.activities.GameHistoryActivity;
 import edu.dartmouth.cs.politigram.activities.MainActivity;
 import edu.dartmouth.cs.politigram.utils.StringToHash;
 
+
+// Fragment within MainActivity to control gaming aspects of Politigram.
 public class GameFragment extends Fragment {
+
+    private View mFragmentView;
+    private ProgressBar mProgressBar;
+
+    Bitmap bitmap;
+
+    SetupGame setupGame;
 
     ArrayList<Map<String,String>> mapList;
     int indexInList = 0;
@@ -68,6 +89,9 @@ public class GameFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        mFragmentView = view.findViewById(R.id.game_fragment_constraint_layout);
+        mProgressBar = view.findViewById(R.id.game_fragment_progress);
+
         ImageButton goToGameHistory = view.findViewById(R.id.game_history_button);
         imageView = view.findViewById(R.id.imageView3);
         Button leansLeftBtn = view.findViewById(R.id.game_leans_left_button);
@@ -87,26 +111,12 @@ public class GameFragment extends Fragment {
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         final String Email = mAuth.getCurrentUser().getEmail();
         database1.child("politigram_users")
-                .addValueEventListener(new ValueEventListener() {
+                .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        Map<String,String> map = createMapForUserPhotos(dataSnapshot);
-                        mapList = new ArrayList<>();
-
-                        for(String image : map.keySet()) {
-                            Map<String,String> tempMap = new HashMap<>();
-                            tempMap.put("image", image);
-                            tempMap.put("political_bent_score",map.get(image));
-                            mapList.add(tempMap);
-                        }
-                        Collections.shuffle(mapList);
-
-                        Log.d("Refreshing image","0");
-                        byte[] byteArray = Base64.decode(mapList.get(0).get("image"), Base64.NO_WRAP);
-                        Bitmap bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
-                        imageView.setImageBitmap(bitmap);
-
-
+                        setupGame = new SetupGame();
+                        setupGame.execute(dataSnapshot);
+                        showProgress(true);
                     }
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
@@ -114,8 +124,7 @@ public class GameFragment extends Fragment {
                     }
                 });
 
-
-
+        showProgress(true);
 
         leansLeftBtn.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.M)
@@ -136,14 +145,35 @@ public class GameFragment extends Fragment {
 
     }
 
+    // Create a hashmap of all Firebase users without privacy mode enabled.
+    // Will use these photos in the game.
     public Map<String,String> createMapForUserPhotos(DataSnapshot dataSnapshot){
         Map<String,String> map = new HashMap<>();
 
         for(DataSnapshot dataSnap : dataSnapshot.getChildren()){
             if(!dataSnap.child("profile_data").child("privacy").exists()|| !dataSnap.child("profile_data").child("privacy").getValue(Boolean.class)) {
+
                 String image = dataSnap.child("profile_data").child("profilePicture").getValue().toString();
-                String politicalScore = dataSnap.child("profile_data").child("sliderPosition").getValue().toString();
-                map.put(image, politicalScore);
+                byte[] decodedString = Base64.decode(image, Base64.DEFAULT);
+                Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+
+                FaceDetector detector;
+                detector = new FaceDetector.Builder(getContext())
+                        .setTrackingEnabled(false)
+                        .setLandmarkType(FaceDetector.ALL_LANDMARKS)
+                        .build();
+
+                Frame frame = new Frame.Builder().setBitmap(decodedByte).build();
+
+                SparseArray<Face> faces = detector.detect(frame);
+
+                if (faces.size() == 1) {
+
+                    String politicalScore = dataSnap.child("profile_data").child("sliderPosition").getValue().toString();
+                    map.put(image, politicalScore);
+
+                }
+
             }
         }
 
@@ -151,13 +181,50 @@ public class GameFragment extends Fragment {
 
     }
 
-    public int getPoliticalBent(int sliderPosition){
+    // AsyncTask to set up the game by checking that one face is present in each profile picture.
+    // If a face cannot be found (or multiple faces are found), the photo is ignored, since a user therefore cannot guess his/her political affiliation.
+    private class SetupGame extends AsyncTask<DataSnapshot, String, String> {
+
+        @Override
+        protected String doInBackground(DataSnapshot... dataSnapshots) {
+
+            Map<String,String> map = createMapForUserPhotos(dataSnapshots[0]);
+            mapList = new ArrayList<>();
+
+            for(String image : map.keySet()) {
+                Map<String,String> tempMap = new HashMap<>();
+                tempMap.put("image", image);
+                tempMap.put("political_bent_score",map.get(image));
+                mapList.add(tempMap);
+            }
+            Collections.shuffle(mapList);
+
+            Log.d("Refreshing image","0");
+            byte[] byteArray = Base64.decode(mapList.get(0).get("image"), Base64.NO_WRAP);
+            bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+
+            showProgress(false);
+            imageView.setImageBitmap(bitmap);
+        }
+
+    }
+
+        public int getPoliticalBent(int sliderPosition){
         if(sliderPosition <= 50){
             return 0;
         }
         return 1;
     }
 
+    // Handle winning and losing the game.
+    // Upload the game score to Firebase once the game has ended.
     @RequiresApi(api = Build.VERSION_CODES.M)
     public void Clicked(int politicalBent){
         if(politicalBent == getPoliticalBent(Integer.parseInt(mapList.get(indexInList).get("political_bent_score")))) {
@@ -165,7 +232,6 @@ public class GameFragment extends Fragment {
             indexInList += 1;
             if(indexInList == mapList.size()){
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-//                builder.setTitle("CONGRATULATIONS");
                 TextView msg = new TextView(getActivity());
                 msg.setText("CONGRATULATIONS!" + "\n" + "YOU'VE COMPLETED THE GAME!");
                 msg.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -173,7 +239,6 @@ public class GameFragment extends Fragment {
                 msg.setTypeface(null, Typeface.BOLD);
                 msg.setTextColor(getResources().getColor(R.color.teal));
                 builder.setView(msg);;
-//                builder.setMessage("YOU'VE WON THE GAME WITH A SCORE OF " + score + "!");
                 builder.setPositiveButton("Start New Game", new DialogInterface.OnClickListener() {
                     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
                     public void onClick(DialogInterface dialog, int id) {
@@ -208,7 +273,7 @@ public class GameFragment extends Fragment {
         }else{
             android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(getActivity());
             TextView msg = new TextView(getActivity());
-            msg.setText("SORRY GAME OVER!" + "\n" + "Your Score Is " + score);
+            msg.setText("GAME OVER!" + "\n" + "Your Score: " + score);
             msg.setGravity(Gravity.CENTER_HORIZONTAL);
             msg.setTextSize(30);
             msg.setTypeface(null, Typeface.BOLD);
@@ -238,9 +303,38 @@ public class GameFragment extends Fragment {
             fragmentTransaction.commit();
         }
 
-
     }
 
-    //setValue(score and date/time) for firebase realtimedatabase when user ends game
+    // Show progress bar UI when game is being loaded.
+    private void showProgress(final boolean show) {
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
+        mFragmentView.setVisibility(show ? View.GONE : View.VISIBLE);
+        mFragmentView.animate().setDuration(shortAnimTime).alpha(
+                show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mFragmentView.setVisibility(show ? View.GONE : View.VISIBLE);
+            }
+        });
+
+        mProgressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        mProgressBar.animate().setDuration(shortAnimTime).alpha(
+                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mProgressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
+    }
+
+    // Stop AsyncTask if fragment changes, since original fragment will no longer be attached to the activity.
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        if (setupGame != null && setupGame.getStatus().equals(AsyncTask.Status.RUNNING)) {
+            setupGame.cancel(true);
+        }
+    }
 }

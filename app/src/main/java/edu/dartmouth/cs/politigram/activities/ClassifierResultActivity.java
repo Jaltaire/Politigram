@@ -65,6 +65,7 @@ public class ClassifierResultActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    // Show classifier results computed in ClassifierFragment.
     private void configureUI() {
 
         mImageView.setImageBitmap(mBitmap);

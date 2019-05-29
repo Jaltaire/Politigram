@@ -52,6 +52,7 @@ public class GameHistoryActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    // Create list of GameObjects, each of which stores data for a user's past game.
     public ArrayList<GameObject> createListOfGameObjects() {
         Log.d("CreateList","Passing through method");
         FirebaseAuth mAuth = FirebaseAuth.getInstance();

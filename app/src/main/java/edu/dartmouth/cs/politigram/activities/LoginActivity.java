@@ -1,5 +1,7 @@
 package edu.dartmouth.cs.politigram.activities;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -11,6 +13,8 @@ import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,6 +39,9 @@ public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = "LoginActivity";
     public static final int REQUEST_CREDENTIALS = 0;
+
+    private View mLoginFormView;
+    private ProgressBar mProgressView;
 
     private Button mLoginButton;
     private TextView mRegisterTextView;
@@ -70,6 +77,9 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         signInPrefs = getSharedPreferences(SIGNED_IN_KEY, MODE_PRIVATE);
+
+        mLoginFormView = findViewById(R.id.login_scroll_view);
+        mProgressView = findViewById(R.id.login_progress);
 
         mLoginButton = findViewById(R.id.login_button);
         mRegisterTextView = findViewById(R.id.register_text_view);
@@ -181,10 +191,14 @@ public class LoginActivity extends AppCompatActivity {
                         Toast.makeText(getApplicationContext(), "Could not log in. Check your Internet connection.", Toast.LENGTH_SHORT).show();
                     }
 
+                    showProgress(false);
+
                 }
 
             }
         });
+
+        showProgress(true);
 
     }
 
@@ -253,6 +267,28 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void showProgress(final boolean show) {
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+        mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+        mLoginFormView.animate().setDuration(shortAnimTime).alpha(
+                show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+            }
+        });
+
+        mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+        mProgressView.animate().setDuration(shortAnimTime).alpha(
+                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
     }
 
     // Launch MainActivity from SignInActivity.

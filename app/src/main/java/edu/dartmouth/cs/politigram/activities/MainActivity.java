@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
                         ArrayList<BoardObject> listOfSortedBoardObjects = createSortedListOfBoardObjects();
                         if (dataSnap.child("user_" + StringToHash.getHex(Email)).child("profile_data").child("privacy").exists()
                         && dataSnap.child("user_" + StringToHash.getHex(Email)).child("profile_data").child("privacy").getValue(Boolean.class)) {
-                                mLeaderBoardScore.setText("N/A (privacy is on)");
+                                mLeaderBoardScore.setText("N/A (Privacy Mode)");
                                 Log.d("onDataChange","privacy is on");
                         }else {
                             if (dataSnap.child("user_" + StringToHash.getHex(Email)).child("game_results").exists()) {
@@ -252,7 +252,7 @@ public class MainActivity extends AppCompatActivity {
         if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP)) {
             Log.d("TEST", "volume up pressed");
 
-            if (mVolumeUpCount == 2 && System.currentTimeMillis() - mVolumeUpInitialTime <= MAX_TIME_DIFFERENCE) {
+            if (mVolumeUpCount == 1 && System.currentTimeMillis() - mVolumeUpInitialTime <= MAX_TIME_DIFFERENCE) {
                 Log.d("TEST", "launch sos activity");
                 mVolumeUpCount = 0;
 
