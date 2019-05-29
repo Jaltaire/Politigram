@@ -255,6 +255,10 @@ public class MainActivity extends AppCompatActivity {
             if (mVolumeUpCount == 2 && System.currentTimeMillis() - mVolumeUpInitialTime <= MAX_TIME_DIFFERENCE) {
                 Log.d("TEST", "launch sos activity");
                 mVolumeUpCount = 0;
+
+                Intent intent = new Intent(MainActivity.this, SOSActivity.class);
+                startActivity(intent);
+
             } else if (mVolumeUpCount != 0 && System.currentTimeMillis() - mVolumeUpInitialTime > MAX_TIME_DIFFERENCE) {
                 mVolumeUpCount = 1;
                 mVolumeUpInitialTime = System.currentTimeMillis();

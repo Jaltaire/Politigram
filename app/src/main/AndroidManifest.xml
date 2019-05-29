@@ -15,14 +15,16 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        <activity android:name=".activities.SOSActivity"></activity>
         <activity
             android:name=".activities.ClassifierHistoryActivity"
-            android:theme="@style/AppTheme"></activity>
+            android:theme="@style/AppTheme" />
         <activity
             android:name=".activities.ClassifierResultActivity"
             android:theme="@style/AppTheme" />
-        <activity android:name=".activities.GameHistoryActivity"
-            android:theme="@style/AppTheme"/>
+        <activity
+            android:name=".activities.GameHistoryActivity"
+            android:theme="@style/AppTheme" />
         <activity
             android:name=".activities.MainActivity"
             android:screenOrientation="portrait"
