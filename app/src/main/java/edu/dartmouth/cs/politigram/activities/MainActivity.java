@@ -255,20 +255,17 @@ public class MainActivity extends AppCompatActivity {
             if (mVolumeUpCount == 2 && System.currentTimeMillis() - mVolumeUpInitialTime <= MAX_TIME_DIFFERENCE) {
                 Log.d("TEST", "launch sos activity");
                 mVolumeUpCount = 0;
-            }
-
-            else if (mVolumeUpCount != 0 && System.currentTimeMillis() - mVolumeUpInitialTime > MAX_TIME_DIFFERENCE) {
+            } else if (mVolumeUpCount != 0 && System.currentTimeMillis() - mVolumeUpInitialTime > MAX_TIME_DIFFERENCE) {
                 mVolumeUpCount = 1;
                 mVolumeUpInitialTime = System.currentTimeMillis();
-            }
-
-            else {
+            } else {
                 mVolumeUpCount = mVolumeUpCount + 1;
             }
 
 
         }
         return true;
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     public ArrayList<BoardObject> createSortedListOfBoardObjects() {
