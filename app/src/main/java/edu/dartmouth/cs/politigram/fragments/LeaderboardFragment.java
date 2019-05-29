@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -68,13 +69,23 @@ public class LeaderboardFragment extends Fragment {
         ArrayList<BoardObject> listOfBoardObjects = new ArrayList<>();
 
         for (DataSnapshot dataSnap : dataSnapshot.getChildren()) {
-            if (dataSnap.child("game_results") != null) {
-                String user = dataSnap.child("profile_data").child("username").getValue().toString();
-                DataSnapshot dataSnap1 = dataSnap.child("game_results");
-                for (DataSnapshot dataSnap2 : dataSnap1.getChildren()) {
-                    String score = dataSnap2.child("score").getValue().toString();
-                    String dateTime = dataSnap2.child("dateTime").getValue().toString();
-                    BoardObject boardObject = new BoardObject(user, score, dateTime);
+            if (!dataSnap.child("profile_data").child("privacy").exists() || !dataSnap.child("profile_data").child("privacy").getValue(Boolean.class)) {
+                if (dataSnap.child("game_results").getChildrenCount() != 0) {
+                    String user = dataSnap.child("profile_data").child("username").getValue().toString();
+                    Log.d("userForGameResults", user);
+                    String image = dataSnap.child("profile_data").child("profilePicture").getValue().toString();
+                    DataSnapshot dataSnap1 = dataSnap.child("game_results");
+                    int maxScore = 0;
+                    String score = "";
+                    String dateTime = "";
+                    for (DataSnapshot dataSnap2 : dataSnap1.getChildren()) {
+                        if (Integer.parseInt(dataSnap2.child("score").getValue().toString()) >= maxScore) {
+                            score = dataSnap2.child("score").getValue().toString();
+                            dateTime = dataSnap2.child("dateTime").getValue().toString();
+                            maxScore = Integer.parseInt(score);
+                        }
+                    }
+                    BoardObject boardObject = new BoardObject(user, score, dateTime, image);
                     listOfBoardObjects.add(boardObject);
                 }
             }

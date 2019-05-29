@@ -3,11 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.LeaderboardFragment">
+    tools:context="fragments.LeaderboardFragment">
 
     <ListView
         android:id="@+id/board_listview"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_marginBottom="80dp">
+
+    </ListView>
 
 </FrameLayout>

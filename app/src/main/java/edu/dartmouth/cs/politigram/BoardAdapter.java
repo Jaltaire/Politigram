@@ -1,13 +1,20 @@
 package edu.dartmouth.cs.politigram;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.Image;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 //Adapter for ListView in GameHistory
 public class BoardAdapter extends BaseAdapter {
@@ -46,12 +53,17 @@ public class BoardAdapter extends BaseAdapter {
         TextView userEmail_textview = view.findViewById(R.id.user_textview);
         TextView score_textview = view.findViewById(R.id.score_textview);
         TextView dateTime_textview = view.findViewById(R.id.dateTime_textview);
+        CircleImageView board_imageview = view.findViewById(R.id.board_imageview);
         String score = getItem(position).getScore();
         String dateTime = getItem(position).getDateTime();
+        String image = getItem(position).getImage();
         String user = getItem(position).getUser();
         userEmail_textview.setText(user);
         dateTime_textview.setText(dateTime);
         score_textview.setText("Score: " + score);
+        byte[] byteArray = Base64.decode(image, Base64.NO_WRAP);
+        Bitmap bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+        board_imageview.setImageBitmap(bitmap);
 
         return view;
     }
