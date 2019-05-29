@@ -1,19 +1,31 @@
 package edu.dartmouth.cs.politigram.fragments;
 
 import android.app.Fragment;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import edu.dartmouth.cs.politigram.adapters.BoardAdapter;
 import edu.dartmouth.cs.politigram.models.BoardObject;
@@ -36,20 +48,34 @@ public class LeaderboardFragment extends Fragment {
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(final View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        list = new ArrayList<>();
-        list = createSortedListOfBoardObjects();
-        ListView listView = view.findViewById(R.id.board_listview);
-        final BoardAdapter adapter = new BoardAdapter(getActivity(), list);
-        listView.setAdapter(adapter);
+        final ListView listView = view.findViewById(R.id.board_listview);
+
+        DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        final String Email = mAuth.getCurrentUser().getEmail();
+        database1.child("politigram_users")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        list = new ArrayList<>();
+                        list = createSortedListOfBoardObjects(dataSnapshot);
+                        final BoardAdapter adapter = new BoardAdapter(getActivity(), list);
+                        listView.setAdapter(adapter);
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+
 
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public ArrayList<BoardObject> createSortedListOfBoardObjects() {
-        DataSnapshot dataSnapshot = MainActivity.dataSnap;
+    public ArrayList<BoardObject> createSortedListOfBoardObjects(DataSnapshot dataSnapshot) {
         ArrayList<BoardObject> listOfBoardObjects = new ArrayList<>();
 
         for (DataSnapshot dataSnap : dataSnapshot.getChildren()) {

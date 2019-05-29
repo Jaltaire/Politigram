@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.Base64;
@@ -25,8 +26,10 @@ import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -80,22 +83,38 @@ public class GameFragment extends Fragment {
                 startActivity(intent);
             }
         });
+        DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        final String Email = mAuth.getCurrentUser().getEmail();
+        database1.child("politigram_users")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        Map<String,String> map = createMapForUserPhotos(dataSnapshot);
+                        mapList = new ArrayList<>();
 
-        Map<String,String> map = createMapForUserPhotos();
-        mapList = new ArrayList<>();
+                        for(String image : map.keySet()) {
+                            Map<String,String> tempMap = new HashMap<>();
+                            tempMap.put("image", image);
+                            tempMap.put("political_bent_score",map.get(image));
+                            mapList.add(tempMap);
+                        }
+                        Collections.shuffle(mapList);
 
-        for(String image : map.keySet()) {
-            Map<String,String> tempMap = new HashMap<>();
-            tempMap.put("image", image);
-            tempMap.put("political_bent_score",map.get(image));
-            mapList.add(tempMap);
-        }
-        Collections.shuffle(mapList);
+                        Log.d("Refreshing image","0");
+                        byte[] byteArray = Base64.decode(mapList.get(0).get("image"), Base64.NO_WRAP);
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+                        imageView.setImageBitmap(bitmap);
 
-        Log.d("Refreshing image","0");
-        byte[] byteArray = Base64.decode(mapList.get(0).get("image"), Base64.NO_WRAP);
-        Bitmap bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
-        imageView.setImageBitmap(bitmap);
+
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+
+
 
 
         leansLeftBtn.setOnClickListener(new View.OnClickListener() {
@@ -117,8 +136,7 @@ public class GameFragment extends Fragment {
 
     }
 
-    public Map<String,String> createMapForUserPhotos(){
-        DataSnapshot dataSnapshot = MainActivity.dataSnap;
+    public Map<String,String> createMapForUserPhotos(DataSnapshot dataSnapshot){
         Map<String,String> map = new HashMap<>();
 
         for(DataSnapshot dataSnap : dataSnapshot.getChildren()){
