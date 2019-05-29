@@ -1,4 +1,4 @@
-package edu.dartmouth.cs.politigram;
+package edu.dartmouth.cs.politigram.models;
 
 import java.util.Comparator;
 

@@ -1,39 +1,23 @@
 package edu.dartmouth.cs.politigram.fragments;
 
 import android.app.Fragment;
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ListView;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-import edu.dartmouth.cs.politigram.BoardAdapter;
-import edu.dartmouth.cs.politigram.BoardObject;
-import edu.dartmouth.cs.politigram.GameHistoryAdapter;
-import edu.dartmouth.cs.politigram.GameObject;
+import edu.dartmouth.cs.politigram.adapters.BoardAdapter;
+import edu.dartmouth.cs.politigram.models.BoardObject;
 import edu.dartmouth.cs.politigram.R;
-import edu.dartmouth.cs.politigram.activities.GameHistoryActivity;
 import edu.dartmouth.cs.politigram.activities.MainActivity;
 
 public class LeaderboardFragment extends Fragment {

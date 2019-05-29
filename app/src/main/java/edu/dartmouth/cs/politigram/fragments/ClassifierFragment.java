@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -13,6 +14,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -20,6 +25,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
 import android.util.Base64;
 import android.util.Log;
 import android.util.SparseArray;
@@ -37,6 +43,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.FaceDetector;
@@ -61,9 +70,10 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
-import edu.dartmouth.cs.politigram.ClassifierObject;
+import edu.dartmouth.cs.politigram.models.ClassifierObject;
 import edu.dartmouth.cs.politigram.R;
 import edu.dartmouth.cs.politigram.activities.ClassifierHistoryActivity;
 import edu.dartmouth.cs.politigram.activities.ClassifierResultActivity;
@@ -82,6 +92,7 @@ public class ClassifierFragment extends android.app.Fragment {
     public static final String INTENT_IMAGE_KEY = "intent_image_key";
     public static final String INTENT_LABEL_KEY = "intent_label_key";
     public static final String INTENT_CONFIDENCE_KEY = "intent_confidence_key";
+    public static final String INTENT_STATE_KEY = "intent_state_key";
 
     private Uri mTempImageCaptureURI;
     private Uri mImageCaptureURI;
@@ -99,6 +110,13 @@ public class ClassifierFragment extends android.app.Fragment {
     private boolean mAllowClassification = false;
 
     private boolean mScaleClassificationResultToLocation = true;
+
+    private FusedLocationProviderClient fusedLocationClient;
+
+    private boolean mPhotoFromCamera;
+
+    Double scaledScore = null;
+    String scaledLabel = null;
 
     public ClassifierFragment() {
         // Required empty public constructor
@@ -140,7 +158,6 @@ public class ClassifierFragment extends android.app.Fragment {
         });
 
         checkDevicePermissions();
-        handleCurrentLocation();
         //classifyPhoto();
 
         String image = "image";
@@ -160,7 +177,7 @@ public class ClassifierFragment extends android.app.Fragment {
 
     //Check if camera and storage permissions have been granted.
     private void checkDevicePermissions() {
-        if(Build.VERSION.SDK_INT < 23)
+        if (Build.VERSION.SDK_INT < 23)
             return;
 
         if (getActivity().checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED || getActivity().checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED || getActivity().checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || getActivity().checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -171,7 +188,7 @@ public class ClassifierFragment extends android.app.Fragment {
     // Prompt user to provide permission to access camera and external storage.
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if (grantResults[0] == PackageManager.PERMISSION_DENIED || grantResults[1] == PackageManager.PERMISSION_DENIED || grantResults[2] == PackageManager.PERMISSION_DENIED || grantResults[3] == PackageManager.PERMISSION_DENIED){ // If storage or camera permissions have not been granted...
+        if (grantResults[0] == PackageManager.PERMISSION_DENIED || grantResults[1] == PackageManager.PERMISSION_DENIED || grantResults[2] == PackageManager.PERMISSION_DENIED || grantResults[3] == PackageManager.PERMISSION_DENIED) { // If storage or camera permissions have not been granted...
             if (Build.VERSION.SDK_INT >= 23) { // If Android system is running Marshmallow or higher...
                 if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) || shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE) || shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) || shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION)) {
                     AlertDialog.Builder alertDialog = new AlertDialog.Builder(getContext());
@@ -179,13 +196,13 @@ public class ClassifierFragment extends android.app.Fragment {
                     alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 
                                 public void onClick(DialogInterface dialog, int id) { // Anonymous function to check if external storage can be used.
-                                    requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 0); }
+                                    requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
+                                }
                             }
                     );
                     // Continue trying to request permissions unless user specifies "don't ask me again".
                     requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
-                }
-                else { // If a user refuses to accept the requested permissions, the user cannot take a photo or save app data.
+                } else { // If a user refuses to accept the requested permissions, the user cannot take a photo or save app data.
 
                     if (getActivity().checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                         mPredictionButton.setEnabled(false);
@@ -257,11 +274,13 @@ public class ClassifierFragment extends android.app.Fragment {
 
         switch (requestCode) {
             case REQUEST_CODE_TAKE_FROM_CAMERA:
+                mPhotoFromCamera = true;
                 beginCrop(mTempImageCaptureURI);
                 Log.d("TEST", "beginning crop");
                 break;
 
             case REQUEST_CODE_TAKE_FROM_GALLERY:
+                mPhotoFromCamera = false;
                 mTempImageCaptureURI = data.getData();
                 beginCrop(mTempImageCaptureURI);
                 Log.d("TEST", "beginning crop");
@@ -366,15 +385,11 @@ public class ClassifierFragment extends android.app.Fragment {
 
                     if (faces.size() == 0) {
                         Toast.makeText(getContext(), "No face detected! Select a new photo.", Toast.LENGTH_LONG).show();
-                    }
-
-                    else {
+                    } else {
                         Toast.makeText(getContext(), "Multiple faces detected! Select a new photo.", Toast.LENGTH_LONG).show();
                     }
 
-                }
-
-                else {
+                } else {
 
                     mPredictionButton.setText("CLASSIFY PHOTO");
                     mPredictionButton.setBackground(getResources().getDrawable(R.drawable.bgbtnguide_valid));
@@ -398,7 +413,7 @@ public class ClassifierFragment extends android.app.Fragment {
 
     }
 
-    private class PerformClassification extends AsyncTask<String, String,String> {
+    private class PerformClassification extends AsyncTask<String, String, String> {
         protected String doInBackground(String... urls) {
 
             try {
@@ -421,7 +436,7 @@ public class ClassifierFragment extends android.app.Fragment {
                     Bitmap tempBitmap = Bitmap.createScaledBitmap(mImageCaptureBitmap, 500, 500, false);
 
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    tempBitmap.compress(Bitmap.CompressFormat.PNG,100, bos);
+                    tempBitmap.compress(Bitmap.CompressFormat.PNG, 100, bos);
                     mImageCaptureByteArray = bos.toByteArray();
                     String image = Base64.encodeToString(mImageCaptureByteArray, Base64.NO_WRAP);
 
@@ -455,9 +470,7 @@ public class ClassifierFragment extends android.app.Fragment {
                                         mPredictionButton.setText("SELECT NEW PHOTO");
                                         mPredictionButton.setBackground(getResources().getDrawable(R.drawable.bgbtnguide_invalid));
                                         mAllowClassification = false;
-                                    }
-
-                                    else {
+                                    } else {
 
                                         JSONArray jsonArray = response.getJSONArray("payload");
 
@@ -466,11 +479,7 @@ public class ClassifierFragment extends android.app.Fragment {
                                         String label = jsonIntermediary.getString("displayName");
                                         String score = jsonIntermediary.getJSONObject("classification").getString("score");
 
-                                        Intent intent = new Intent(getContext(), ClassifierResultActivity.class);
-                                        intent.putExtra(INTENT_IMAGE_KEY, mImageCaptureByteArray);
-                                        intent.putExtra(INTENT_LABEL_KEY, label);
-                                        intent.putExtra(INTENT_CONFIDENCE_KEY, score);
-                                        startActivityForResult(intent, LoginActivity.REQUEST_CREDENTIALS);
+                                        handleCurrentLocation(label, score);
 
                                     }
 
@@ -505,13 +514,10 @@ public class ClassifierFragment extends android.app.Fragment {
                 };
 
                 RequestQueue queue = null;
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                    queue = Volley.newRequestQueue(getContext());
-                    queue.add(jsonObjectRequest);
-                }
+                queue = Volley.newRequestQueue(getContext());
+                queue.add(jsonObjectRequest);
 
                 Log.d("TEST", "end of volley api call");
-
 
 
             } catch (IOException e) {
@@ -523,7 +529,94 @@ public class ClassifierFragment extends android.app.Fragment {
 
     }
 
-    private void handleCurrentLocation() {
+    private void handleCurrentLocation(final String classifierLabel, final String classifierScore) {
+
+        Log.d("TEST", "handling current location");
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(getActivity());
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
+            if (mPhotoFromCamera) {
+
+                Log.d("TEST", "permissions granted...");
+
+                fusedLocationClient.getLastLocation()
+                        .addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
+                            @Override
+                            public void onSuccess(Location location) {
+                                Log.d("TEST", "got location");
+                                if (location != null) {
+
+                                    Geocoder gcd = new Geocoder(getContext(), Locale.getDefault());
+                                    List<Address> addresses;
+                                    try {
+                                        addresses = gcd.getFromLocation(location.getLatitude(),
+                                                location.getLongitude(), 1);
+                                        if (addresses.size() > 0) {
+                                            String state = addresses.get(0).getAdminArea();
+                                            String country = addresses.get(0).getCountryName();
+
+                                            String label = classifierLabel;
+                                            String score = classifierScore;
+
+                                            Log.d("TEST", "my state: " + state);
+
+                                            // If location can be determined, scale the classifier prediction according to 2016 U.S. presidential election voter data by state.
+                                            if (state != null && country.equals("United States")) {
+                                                computeScaledValues(classifierLabel, Double.valueOf(classifierScore), state);
+
+                                                if (scaledScore != null && scaledLabel != null) {
+                                                    Log.d("TEST", "using scaled values");
+                                                    label = scaledLabel;
+                                                    score = scaledScore.toString();
+
+                                                    Log.d("TEST", label);
+                                                    Log.d("TEST", score);
+
+                                                    launchClassifierResultActivity(label, score, state);
+                                                }
+
+                                                else {
+                                                    launchClassifierResultActivity(label, score, null);
+                                                }
+                                            }
+
+                                            else {
+                                                launchClassifierResultActivity(label, score, null);
+                                            }
+
+                                        }
+
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                        Toast.makeText(getContext(), "Could not fetch data from last location.", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+
+                            }
+                        });
+
+            }
+
+            else {
+                launchClassifierResultActivity(classifierLabel, classifierScore, null);
+            }
+
+        }
+
+        // If user has not granted locations permission, show the user the normal classifier results.
+        else {
+            launchClassifierResultActivity(classifierLabel, classifierScore, null);
+        }
+
+    }
+
+    private void computeScaledValues(String classifierLabel, double classifierScore, String currentState) {
+
+        Log.d("TEST", "computing scaled values");
+
+        Double democraticVoteCount = null;
+        Double republicanVoteCount = null;
 
         try {
             InputStreamReader isr = new InputStreamReader(getActivity().getAssets().open("election-data.csv"));
@@ -531,12 +624,92 @@ public class ClassifierFragment extends android.app.Fragment {
             reader.readLine();
             String line;
             while ((line = reader.readLine()) != null) {
-                Log.d("TEST", line);
+                String[] components = line.split(",");
+
+                String state = components[1];
+                String party = components[9];
+                //String totalVoteCount = components[12];
+
+                Log.d("TEST", state + " " + party + " " + components[11]);
+
+                if (currentState.equals(state) && party.equals("democrat")) democraticVoteCount = Double.valueOf(components[11]);
+                else if (currentState.equals(state) && party.equals("republican")) republicanVoteCount = Double.valueOf(components[11]);
+
+                if (democraticVoteCount != null && republicanVoteCount != null) break;
+
             }
 
-        } catch (IOException e) {
+        }
+
+        catch (IOException e) {
             e.printStackTrace();
         }
+
+        // Normalize vote counts for each party (since some non-major-party candidates also receive votes).
+        if (democraticVoteCount != null && republicanVoteCount != null) {
+            Double totalVotes = democraticVoteCount + republicanVoteCount;
+
+            Double democraticProportion = democraticVoteCount / totalVotes;
+            Double republicanProportion = republicanVoteCount / totalVotes;
+
+            Double opposingScore = 1 - classifierScore;
+
+            if (classifierLabel.equals("Liberal")) {
+                Double liberalScore = classifierScore * democraticProportion;
+                Double conservativeScore = opposingScore * republicanProportion;
+
+                Double totalScore = liberalScore + conservativeScore;
+
+                // Normalize liberal and conservative scores.
+                liberalScore = liberalScore/totalScore;
+                conservativeScore = conservativeScore/totalScore;
+
+                if (conservativeScore > liberalScore) {
+                    scaledScore = conservativeScore;
+                    scaledLabel = "Conservative";
+                }
+                else {
+                    scaledScore = liberalScore;
+                    scaledLabel = "Liberal";
+                }
+
+                Log.d("TEST", "updated scores");
+            }
+
+            else if (classifierLabel.equals("Conservative")) {
+                Double liberalScore = opposingScore * democraticProportion;
+                Double conservativeScore = classifierScore * republicanProportion;
+
+                Double totalScore = liberalScore + conservativeScore;
+
+                // Normalize liberal and conservative scores.
+                liberalScore = liberalScore/totalScore;
+                conservativeScore = conservativeScore/totalScore;
+
+                if (liberalScore > conservativeScore) {
+                    scaledScore = liberalScore;
+                    scaledLabel = "Liberal";
+                }
+                else {
+                    scaledScore = conservativeScore;
+                    scaledLabel = "Conservative";
+                }
+
+                Log.d("TEST", "updated scores");
+            }
+
+        }
+
+    }
+
+    private void launchClassifierResultActivity(String label, String score, String state) {
+
+        Intent intent = new Intent(getContext(), ClassifierResultActivity.class);
+        intent.putExtra(INTENT_IMAGE_KEY, mImageCaptureByteArray);
+        intent.putExtra(INTENT_LABEL_KEY, label);
+        intent.putExtra(INTENT_CONFIDENCE_KEY, score);
+        intent.putExtra(INTENT_STATE_KEY, state);
+        startActivity(intent);
 
     }
 

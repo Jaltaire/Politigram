@@ -1,4 +1,4 @@
-package edu.dartmouth.cs.politigram;
+package edu.dartmouth.cs.politigram.adapters;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -15,6 +15,15 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import edu.dartmouth.cs.politigram.R;
+import edu.dartmouth.cs.politigram.models.BoardObject;
+
+//<<<<<<< HEAD:app/src/main/java/edu/dartmouth/cs/politigram/BoardAdapter.java
+//import de.hdodenhof.circleimageview.CircleImageView;
+//=======
+//import edu.dartmouth.cs.politigram.models.BoardObject;
+//import edu.dartmouth.cs.politigram.R;
+//>>>>>>> 7d544ca5ccacafb18ec105d3d8403e3988185166:app/src/main/java/edu/dartmouth/cs/politigram/adapters/BoardAdapter.java
 
 //Adapter for ListView in GameHistory
 public class BoardAdapter extends BaseAdapter {

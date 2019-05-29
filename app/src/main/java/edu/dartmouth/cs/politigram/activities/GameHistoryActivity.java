@@ -2,21 +2,17 @@ package edu.dartmouth.cs.politigram.activities;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.ListView;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
-import edu.dartmouth.cs.politigram.GameObject;
-import edu.dartmouth.cs.politigram.GameHistoryAdapter;
+import edu.dartmouth.cs.politigram.models.GameObject;
+import edu.dartmouth.cs.politigram.adapters.GameHistoryAdapter;
 import edu.dartmouth.cs.politigram.R;
 import edu.dartmouth.cs.politigram.utils.StringToHash;
 
