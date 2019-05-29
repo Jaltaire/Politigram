@@ -80,6 +80,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.dartmouth.cs.politigram.activities.LoginActivity;
+import edu.dartmouth.cs.politigram.activities.MainActivity;
 import edu.dartmouth.cs.politigram.activities.ProfileActivity;
 import edu.dartmouth.cs.politigram.models.ClassifierEntry;
 import edu.dartmouth.cs.politigram.models.ClassifierObject;
@@ -173,6 +174,8 @@ public class ClassifierFragment extends android.app.Fragment {
 
         checkDevicePermissions();
         //classifyPhoto();
+
+        Log.d("is Datasnapshot null",Boolean.toString(MainActivity.dataSnap==null));
 
     }
 
