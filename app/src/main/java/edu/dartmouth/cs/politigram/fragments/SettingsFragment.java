@@ -49,15 +49,6 @@ public class SettingsFragment extends PreferenceFragment {
             }
         });
 
-//        SharedPreferences.Editor editor = getActivity().getSharedPreferences(PRIVACY_KEY, MODE_PRIVATE).edit();
-//        PreferenceManager preferenceManager = getPreferenceManager();
-//        if (preferenceManager.getSharedPreferences().getBoolean(getString(R.string.privacy_setting_key), false)){
-//            editor.putBoolean("privacy_on", true);
-//        } else {
-//            editor.putBoolean("privacy_on", false);
-//        }
-//
-//        editor.apply();
 
         mSignOut = findPreference(getString(R.string.sign_out_key));
         mSignOut.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
@@ -85,6 +76,9 @@ public class SettingsFragment extends PreferenceFragment {
         if(MainActivity.dataSnap.child("user_"+ StringToHash.getHex(Email)).child("profile_data").child("privacy").exists()) {
             privacy.setChecked(MainActivity.dataSnap.child("user_" + StringToHash.getHex(Email)).child("profile_data").child("privacy")
                     .getValue(Boolean.class));
+        }
+        else{
+            privacy.setChecked(false);
         }
     }
         //Handles cases for when unit_preference, sign_out, and webpage and clicked respectively

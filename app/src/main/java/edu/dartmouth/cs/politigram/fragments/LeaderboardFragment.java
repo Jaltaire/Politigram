@@ -1,10 +1,13 @@
 package edu.dartmouth.cs.politigram.fragments;
 
 import android.app.Fragment;
+import android.app.FragmentTransaction;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -103,8 +106,18 @@ public class LeaderboardFragment extends Fragment {
         listOfBoardObjects.sort(BoardObject.BoardObjectComparator);
 
         return listOfBoardObjects;
-
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        if(pref.getBoolean("isFromSettings",false)){
+            final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+            fragmentTransaction.replace(R.id.fragment_container, new LeaderboardFragment());
+            fragmentTransaction.commit();
+            pref.edit().putBoolean("isFromSettings",false).apply();
+        }
+    }
 
 }

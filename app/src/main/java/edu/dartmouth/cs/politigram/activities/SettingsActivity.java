@@ -3,6 +3,7 @@ package edu.dartmouth.cs.politigram.activities;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import android.view.MenuItem;
 import com.google.firebase.auth.FirebaseAuth;
 
 import edu.dartmouth.cs.politigram.R;
+import edu.dartmouth.cs.politigram.fragments.LeaderboardFragment;
 import edu.dartmouth.cs.politigram.fragments.SettingsFragment;
 
 public class SettingsActivity extends AppCompatActivity {
@@ -42,6 +44,8 @@ public class SettingsActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == android.R.id.home) {
+            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+            pref.edit().putBoolean("isFromSettings",true).apply();
             this.finish(); // Close the activity
         }
 
