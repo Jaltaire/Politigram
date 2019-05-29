@@ -2,17 +2,29 @@ package edu.dartmouth.cs.politigram.fragments;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
+import android.support.annotation.NonNull;
+import android.util.Base64;
 import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import edu.dartmouth.cs.politigram.R;
 import edu.dartmouth.cs.politigram.activities.LoginActivity;
@@ -71,15 +83,26 @@ public class SettingsFragment extends PreferenceFragment {
             }
         });
 
+        DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         final String Email = mAuth.getCurrentUser().getEmail();
-        SwitchPreference privacy = (SwitchPreference) findPreference("PrivacySetting");
-        if (MainActivity.dataSnap.child("user_"+ StringToHash.getHex(Email)).child("profile_data").child("privacy").exists()) {
-            privacy.setChecked(MainActivity.dataSnap.child("user_" + StringToHash.getHex(Email)).child("profile_data").child("privacy").getValue(Boolean.class));
-        }
-        else{
-            privacy.setChecked(false);
-        }
+        database1.child("politigram_users")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        SwitchPreference privacy = (SwitchPreference) findPreference("PrivacySetting");
+                        if (dataSnapshot.child("user_"+ StringToHash.getHex(Email)).child("profile_data").child("privacy").exists()) {
+                            privacy.setChecked(dataSnapshot.child("user_" + StringToHash.getHex(Email)).child("profile_data").child("privacy").getValue(Boolean.class));
+                        }
+                        else{
+                            privacy.setChecked(false);
+                        }
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
     }
         //Handles cases for when unit_preference, sign_out, and webpage and clicked respectively
         @Override
