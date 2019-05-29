@@ -515,7 +515,6 @@ public class ProfileActivity extends AppCompatActivity {
         byte[] bb = bos.toByteArray();
         String image = Base64.encodeToString(bb, Base64.NO_WRAP);
 
-
         String usernameText = mUsername.getText().toString();
         String emailText = mEmail.getText().toString();
         String passwordText = mPassword.getText().toString();

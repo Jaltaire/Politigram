@@ -13,6 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -29,6 +30,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.List;
 import java.util.ArrayList;
 
 import edu.dartmouth.cs.politigram.R;
@@ -56,6 +58,16 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout mGameLinearLayout;
     private LinearLayout mLeaderboardLinearLayout;
     private LinearLayout mSettingsLinearLayout;
+
+    private ImageView mClassifierTabImageView;
+    private ImageView mGameTabImageView;
+    private ImageView mLeaderboardTabImageView;
+    private ImageView mSettingsTabImageView;
+
+    private int mVolumeUpCount = 0;
+    private double mVolumeUpInitialTime = System.currentTimeMillis();
+
+    private double MAX_TIME_DIFFERENCE = 3000;
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
@@ -120,6 +132,11 @@ public class MainActivity extends AppCompatActivity {
         mUsername = findViewById(R.id.main_username);
         mPoliticalLeaning = findViewById(R.id.main_political_affiliation);
 
+        mClassifierTabImageView = findViewById(R.id.classifier_tab_image_view);
+        mGameTabImageView = findViewById(R.id.game_tab_image_view);
+        mLeaderboardTabImageView = findViewById(R.id.leaderboard_tab_image_view);
+        mSettingsTabImageView = findViewById(R.id.settings_tab_image_view);
+
         mClassifierLinearLayout = findViewById(R.id.classifier_linear_layout);
         mClassifierLinearLayout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -127,6 +144,8 @@ public class MainActivity extends AppCompatActivity {
                 final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
                 fragmentTransaction.replace(R.id.fragment_container, new ClassifierFragment());
                 fragmentTransaction.commit();
+
+                adjustImageViewUI(0);
             }
         });
 
@@ -137,6 +156,8 @@ public class MainActivity extends AppCompatActivity {
                 final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
                 fragmentTransaction.replace(R.id.fragment_container, new GameFragment());
                 fragmentTransaction.commit();
+
+                adjustImageViewUI(1);
             }
         });
 
@@ -147,6 +168,8 @@ public class MainActivity extends AppCompatActivity {
                 final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
                 fragmentTransaction.replace(R.id.fragment_container, new LeaderboardFragment());
                 fragmentTransaction.commit();
+
+                adjustImageViewUI(2);
             }
         });
 
@@ -156,6 +179,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
                 startActivity(intent);
+
+                //adjustImageViewUI(3);
             }
         });
 
@@ -182,6 +207,28 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void adjustImageViewUI(int position) {
+
+        List<ImageView> mImageViewList = new ArrayList<>();
+        mImageViewList.add(mClassifierTabImageView);
+        mImageViewList.add(mGameTabImageView);
+        mImageViewList.add(mLeaderboardTabImageView);
+        mImageViewList.add(mSettingsTabImageView);
+
+        ImageView focus = mImageViewList.get(position);
+        focus.getLayoutParams().width = 235;
+        focus.getLayoutParams().height = 235;
+
+        mImageViewList.remove(focus);
+        for (ImageView imageView : mImageViewList) {
+            imageView.getLayoutParams().width = 220;
+            imageView.getLayoutParams().height = 220;
+        }
+
+        mClassifierTabImageView.requestLayout();
+
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -197,6 +244,27 @@ public class MainActivity extends AppCompatActivity {
         homeIntent.addCategory( Intent.CATEGORY_HOME );
         homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(homeIntent);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+        if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP)) {
+            Log.d("TEST", "volume up pressed");
+
+            if (mVolumeUpCount == 2 && System.currentTimeMillis() - mVolumeUpInitialTime <= MAX_TIME_DIFFERENCE) {
+                Log.d("TEST", "launch sos activity");
+                mVolumeUpCount = 0;
+            } else if (mVolumeUpCount != 0 && System.currentTimeMillis() - mVolumeUpInitialTime > MAX_TIME_DIFFERENCE) {
+                mVolumeUpCount = 1;
+                mVolumeUpInitialTime = System.currentTimeMillis();
+            } else {
+                mVolumeUpCount = mVolumeUpCount + 1;
+            }
+
+
+        }
+        return true;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
