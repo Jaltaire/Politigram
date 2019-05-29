@@ -7,11 +7,13 @@ public class BoardObject {
     String user;
     String score;
     String dateTime;
+    String image;
 
-    public BoardObject(String user, String score, String dateTime) {
+    public BoardObject(String user, String score, String dateTime, String image) {
         this.user = user;
         this.score = score;
         this.dateTime = dateTime;
+        this.image = image;
     }
 
     public String getUser() {
@@ -36,6 +38,14 @@ public class BoardObject {
 
     public void setDateTime(String dateTime) {
         this.dateTime = dateTime;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 
     public int compareTo(BoardObject compareObject) {

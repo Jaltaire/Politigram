@@ -4,10 +4,10 @@
 
     <PreferenceCategory android:title="@string/application_settings_preference_category" >
         <SwitchPreference
-            android:defaultValue="true"
             android:key="@string/privacy_setting_key"
             android:summary="@string/privacy_setting_summary"
-            android:title="@string/privacy_setting_title"/>
+            android:title="@string/privacy_setting_title"
+            android:defaultValue="false"/>
 
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/account_settings_preference_category" >

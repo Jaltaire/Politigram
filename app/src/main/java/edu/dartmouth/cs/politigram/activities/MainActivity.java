@@ -5,7 +5,10 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
+import android.os.Build;
+import android.preference.SwitchPreference;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
@@ -27,15 +30,17 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
 import edu.dartmouth.cs.politigram.R;
 import edu.dartmouth.cs.politigram.fragments.ClassifierFragment;
 import edu.dartmouth.cs.politigram.fragments.GameFragment;
 import edu.dartmouth.cs.politigram.fragments.LeaderboardFragment;
 import edu.dartmouth.cs.politigram.fragments.MainFragment;
+import edu.dartmouth.cs.politigram.models.BoardObject;
 import edu.dartmouth.cs.politigram.utils.PoliticalLeaningConversion;
+import edu.dartmouth.cs.politigram.utils.StringToHash;
 
 //test
 public class MainActivity extends AppCompatActivity {
@@ -45,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
     TextView mUsername;
     TextView mPoliticalLeaning;
+    TextView mLeaderBoardScore;
 
     Animation atg, atgtwo, atgthree;
 
@@ -63,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
 
     private double MAX_TIME_DIFFERENCE = 3000;
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,20 +79,45 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.add(R.id.fragment_container, new MainFragment());
         fragmentTransaction.commit();
 
+        mLeaderBoardScore = findViewById(R.id.walletuser3);
+
         //Add onDataChange Listener here, so that constantly updating Classifier and Game Class
         //Retrieve data from RealTimeDatabase
         DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         FirebaseUser User = mAuth.getCurrentUser();
         String mUserId = User.getUid();
+        final String Email = mAuth.getCurrentUser().getEmail();
         database1.child("politigram_users")
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         dataSnap = dataSnapshot;
+                        String currentUser = dataSnap.child("user_"+ StringToHash.getHex(Email)).child("profile_data").child("username").getValue().toString();
                         Log.d("MainActivity","onDataChange");
-
+                        ArrayList<BoardObject> listOfSortedBoardObjects = createSortedListOfBoardObjects();
+                        if (dataSnap.child("user_" + StringToHash.getHex(Email)).child("profile_data").child("privacy").exists()
+                        && dataSnap.child("user_" + StringToHash.getHex(Email)).child("profile_data").child("privacy").getValue(Boolean.class)) {
+                                mLeaderBoardScore.setText("N/A (privacy is on)");
+                                Log.d("onDataChange","privacy is on");
+                        }else {
+                            if (dataSnap.child("user_" + StringToHash.getHex(Email)).child("game_results").exists()) {
+                                int rank = 1;
+                                for (BoardObject boardObject : listOfSortedBoardObjects) {
+                                    if (boardObject.getUser().equals(currentUser)) {
+                                        break;
+                                    }
+                                    rank += 1;
+                                }
+                                Log.d("onDataChange", "setting score to " + rank);
+                                mLeaderBoardScore.setText("#" + rank);
+                            } else {
+                                mLeaderBoardScore.setText("N/A");
+                                Log.d("onDataChange","never played");
+                            }
+                        }
                     }
+
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
 
@@ -237,6 +269,37 @@ public class MainActivity extends AppCompatActivity {
 
         }
         return true;
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public ArrayList<BoardObject> createSortedListOfBoardObjects() {
+        DataSnapshot dataSnapshot = MainActivity.dataSnap;
+        ArrayList<BoardObject> listOfBoardObjects = new ArrayList<>();
+
+        for (DataSnapshot dataSnap : dataSnapshot.getChildren()) {
+            if (!dataSnap.child("profile_data").child("privacy").exists() || !dataSnap.child("profile_data").child("privacy").getValue(Boolean.class)) {
+                if (dataSnap.child("game_results").getChildrenCount() != 0) {
+                    String user = dataSnap.child("profile_data").child("username").getValue().toString();
+                    Log.d("userForGameResults", user);
+                    String image = dataSnap.child("profile_data").child("profilePicture").getValue().toString();
+                    DataSnapshot dataSnap1 = dataSnap.child("game_results");
+                    int maxScore = 0;
+                    String score = "";
+                    String dateTime = "";
+                    for (DataSnapshot dataSnap2 : dataSnap1.getChildren()) {
+                        if (Integer.parseInt(dataSnap2.child("score").getValue().toString()) >= maxScore) {
+                            score = dataSnap2.child("score").getValue().toString();
+                            dateTime = dataSnap2.child("dateTime").getValue().toString();
+                            maxScore = Integer.parseInt(score);
+                        }
+                    }
+                    BoardObject boardObject = new BoardObject(user, score, dateTime, image);
+                    listOfBoardObjects.add(boardObject);
+                }
+            }
+        }
+        listOfBoardObjects.sort(BoardObject.BoardObjectComparator);
+
+        return listOfBoardObjects;
 
     }
 }

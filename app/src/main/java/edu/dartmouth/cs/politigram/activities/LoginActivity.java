@@ -44,6 +44,8 @@ public class LoginActivity extends AppCompatActivity {
     private boolean mValidEmail;
     private boolean mValidPassword;
 
+//    static DataSnapshot dataSnap;
+
     public static String profilePictureBytes;
     public static String email;
     public static String password;
@@ -76,6 +78,21 @@ public class LoginActivity extends AppCompatActivity {
         mPassword = findViewById(R.id.login_password_edit_text);
 
         checkSignedIn();
+
+//        DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
+//        database1.child("politigram_users")
+//                .addValueEventListener(new ValueEventListener() {
+//                    @Override
+//                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                        dataSnap = dataSnapshot;
+//                        Log.d("MainActivity","onDataChange");
+//                    }
+//
+//                    @Override
+//                    public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//                    }
+//                });
 
         //If Sign in button is pressed + Entered email&password are valid ---> opens up Main Activity Page
         mLoginButton.setOnClickListener(new View.OnClickListener() {

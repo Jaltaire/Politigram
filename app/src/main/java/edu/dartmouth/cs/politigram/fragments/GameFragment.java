@@ -30,6 +30,7 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -89,6 +90,7 @@ public class GameFragment extends Fragment {
             tempMap.put("political_bent_score",map.get(image));
             mapList.add(tempMap);
         }
+        Collections.shuffle(mapList);
 
         Log.d("Refreshing image","0");
         byte[] byteArray = Base64.decode(mapList.get(0).get("image"), Base64.NO_WRAP);
@@ -128,9 +130,11 @@ public class GameFragment extends Fragment {
         Map<String,String> map = new HashMap<>();
 
         for(DataSnapshot dataSnap : dataSnapshot.getChildren()){
-            String image = dataSnap.child("profile_data").child("profilePicture").getValue().toString();
-            String politicalScore = dataSnap.child("profile_data").child("sliderPosition").getValue().toString();
-            map.put(image,politicalScore);
+            if(!dataSnap.child("profile_data").child("privacy").exists()|| !dataSnap.child("profile_data").child("privacy").getValue(Boolean.class)) {
+                String image = dataSnap.child("profile_data").child("profilePicture").getValue().toString();
+                String politicalScore = dataSnap.child("profile_data").child("sliderPosition").getValue().toString();
+                map.put(image, politicalScore);
+            }
         }
 
         return map;
@@ -163,26 +167,26 @@ public class GameFragment extends Fragment {
                 builder.setPositiveButton("Start New Game", new DialogInterface.OnClickListener() {
                     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
                     public void onClick(DialogInterface dialog, int id) {
-                        //Create Game Object
-                        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-                        String currentTime = sdf.format(new Date());
-                        SimpleDateFormat sdf1 = new SimpleDateFormat("MM/dd/yyyy");
-                        String currentDate = sdf1.format(new Date());
-                        String dateTime = currentDate + "  " + currentTime;
-                        GameObject gameObject = new GameObject(String.valueOf(score), dateTime);
-
-                        //When Game ends and we want to save the score in Firebase
-                        DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
-                        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-                        String Email = mAuth.getCurrentUser().getEmail();
-                        database1.child("politigram_users").child("user_" + StringToHash.getHex(Email)).child("game_results").push().setValue(gameObject);
-
-                        final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-                        fragmentTransaction.replace(R.id.fragment_container, new GameFragment());
-                        fragmentTransaction.commit();
                     }
                 });
                 builder.show();
+                //Create Game Object
+                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+                String currentTime = sdf.format(new Date());
+                SimpleDateFormat sdf1 = new SimpleDateFormat("MM/dd/yyyy");
+                String currentDate = sdf1.format(new Date());
+                String dateTime = currentDate + "  " + currentTime;
+                GameObject gameObject = new GameObject(String.valueOf(score), dateTime);
+
+                //When Game ends and we want to save the score in Firebase
+                DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
+                FirebaseAuth mAuth = FirebaseAuth.getInstance();
+                String Email = mAuth.getCurrentUser().getEmail();
+                database1.child("politigram_users").child("user_" + StringToHash.getHex(Email)).child("game_results").push().setValue(gameObject);
+
+                final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+                fragmentTransaction.replace(R.id.fragment_container, new GameFragment());
+                fragmentTransaction.commit();
 
             }else {
                 byte[] byteArray = Base64.decode(mapList.get(indexInList).get("image"), Base64.NO_WRAP);
@@ -203,26 +207,25 @@ public class GameFragment extends Fragment {
             builder.setPositiveButton("Start New Game", new DialogInterface.OnClickListener() {
                 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
                 public void onClick(DialogInterface dialog, int id) {
-
-                    //Create Game Object
-                    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-                    String currentTime = sdf.format(new Date());
-                    SimpleDateFormat sdf1 = new SimpleDateFormat("MM/dd/yyyy");
-                    String currentDate = sdf1.format(new Date());
-                    String dateTime = currentDate + "  " + currentTime;
-                    GameObject gameObject = new GameObject(String.valueOf(score), dateTime);
-
-                    //When Game ends and we want to save the score in Firebase
-                    DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
-                    FirebaseAuth mAuth = FirebaseAuth.getInstance();
-                    String Email = mAuth.getCurrentUser().getEmail();
-                    database1.child("politigram_users").child("user_" + StringToHash.getHex(Email)).child("game_results").push().setValue(gameObject);
-                    final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-                    fragmentTransaction.replace(R.id.fragment_container, new GameFragment());
-                    fragmentTransaction.commit();
                 }
             });
             builder.show();
+            //Create Game Object
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+            String currentTime = sdf.format(new Date());
+            SimpleDateFormat sdf1 = new SimpleDateFormat("MM/dd/yyyy");
+            String currentDate = sdf1.format(new Date());
+            String dateTime = currentDate + "  " + currentTime;
+            GameObject gameObject = new GameObject(String.valueOf(score), dateTime);
+
+            //When Game ends and we want to save the score in Firebase
+            DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
+            FirebaseAuth mAuth = FirebaseAuth.getInstance();
+            String Email = mAuth.getCurrentUser().getEmail();
+            database1.child("politigram_users").child("user_" + StringToHash.getHex(Email)).child("game_results").push().setValue(gameObject);
+            final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+            fragmentTransaction.replace(R.id.fragment_container, new GameFragment());
+            fragmentTransaction.commit();
         }
 
 
