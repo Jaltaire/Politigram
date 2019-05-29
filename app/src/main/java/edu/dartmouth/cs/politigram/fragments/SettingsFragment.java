@@ -13,6 +13,7 @@ import android.preference.SwitchPreference;
 import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -30,6 +31,7 @@ import edu.dartmouth.cs.politigram.R;
 import edu.dartmouth.cs.politigram.activities.LoginActivity;
 import edu.dartmouth.cs.politigram.activities.MainActivity;
 import edu.dartmouth.cs.politigram.activities.ProfileActivity;
+import edu.dartmouth.cs.politigram.utils.InternetConnectionTester;
 import edu.dartmouth.cs.politigram.utils.StringToHash;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -39,7 +41,7 @@ public class SettingsFragment extends PreferenceFragment {
 
     Preference mEditProfile;
     Preference mSignOut;
-    Preference mPrivacy;
+    SwitchPreference privacy;
 
     private static final String SIGNED_IN_KEY = "signed_in";
     private static final String PRIVACY_KEY = "privacy";
@@ -51,19 +53,9 @@ public class SettingsFragment extends PreferenceFragment {
         addPreferencesFromResource(R.xml.preferences);
 
         mEditProfile = findPreference(getString(R.string.edit_profile_key));
-        mEditProfile.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-            @Override
-            public boolean onPreferenceClick(Preference preference) {
-
-                Intent myIntent = new Intent(getActivity(), ProfileActivity.class);
-                getActivity().startActivityForResult(myIntent, 0);
-
-                return true;
-            }
-        });
-
-
         mSignOut = findPreference(getString(R.string.sign_out_key));
+        privacy = (SwitchPreference) findPreference("PrivacySetting");
+
         mSignOut.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
@@ -84,79 +76,70 @@ public class SettingsFragment extends PreferenceFragment {
             }
         });
 
-        // Update the privacy preference flag on Firebase according to the user's selection.
-        // This way, if user logs out or logs in on another device, privacy preferences will be maintained.
-        DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        final String Email = mAuth.getCurrentUser().getEmail();
-        database1.child("politigram_users")
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        SwitchPreference privacy = (SwitchPreference) findPreference("PrivacySetting");
-                        if (dataSnapshot.child("user_"+ StringToHash.getHex(Email)).child("profile_data").child("privacy").exists()) {
-                            privacy.setChecked(dataSnapshot.child("user_" + StringToHash.getHex(Email)).child("profile_data").child("privacy").getValue(Boolean.class));
-                        }
-                        else{
-                            privacy.setChecked(false);
-                        }
-                    }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
+        if (!InternetConnectionTester.hasInternetConnection(getContext())) {
+            mEditProfile.setEnabled(false);
+            privacy.setEnabled(false);
+            Toast.makeText(getContext(), "No Internet connection. Cannot adjust privacy settings or profile.", Toast.LENGTH_LONG).show();
+        }
 
-                    }
-                });
+        else {
+
+            mEditProfile.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+
+                    Intent myIntent = new Intent(getActivity(), ProfileActivity.class);
+                    getActivity().startActivityForResult(myIntent, 0);
+
+                    return true;
+                }
+            });
+
+            // Set the privacy preference value to the current value stored in Firebase.
+            DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
+            FirebaseAuth mAuth = FirebaseAuth.getInstance();
+            final String Email = mAuth.getCurrentUser().getEmail();
+            database1.child("politigram_users")
+                    .addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.child("user_" + StringToHash.getHex(Email)).child("profile_data").child("privacy").exists()) {
+                                privacy.setChecked(dataSnapshot.child("user_" + StringToHash.getHex(Email)).child("profile_data").child("privacy").getValue(Boolean.class));
+                            } else {
+                                privacy.setChecked(false);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+
+        }
     }
-        //Handles cases for when unit_preference, sign_out, and webpage and clicked respectively
-        @Override
-        public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
-                Preference preference) {
-            switch (preference.getKey()){
-                case "PrivacySetting":
-                    SwitchPreference privacy = (SwitchPreference)findPreference("PrivacySetting");
+
+    // Update the privacy preference flag on Firebase according to the user's selection.
+    // This way, if user logs out or logs in on another device, privacy preferences will be maintained.
+    @Override
+    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
+        switch (preference.getKey()){
+            case "PrivacySetting":
+                SwitchPreference privacy = (SwitchPreference)findPreference("PrivacySetting");
+
+                if (InternetConnectionTester.hasInternetConnection(getContext())) {
                     final DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
                     FirebaseAuth mAuth = FirebaseAuth.getInstance();
                     final String Email = mAuth.getCurrentUser().getEmail();
                     database1.child("politigram_users").child("user_" + StringToHash.getHex(Email)).child("profile_data").child("privacy")
                             .setValue(privacy.isChecked());
                     Log.d("privacy", Boolean.toString(privacy.isChecked()));
-                    return true;
-                default:
-                    return false;
-                    }
-//        mPrivacy = findPreference(getString(R.string.privacy_setting_key));
-//        final DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
-//        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-//        final String Email = mAuth.getCurrentUser().getEmail();
-//        mPrivacy.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-//            @Override
-//            public boolean onPreferenceChange(Preference preference, Object newValue) {
-//                boolean isPrivate = (Boolean) newValue;
-//                Log.d("isPrivate",Boolean.toString(isPrivate));
-//                if (preference.isEnabled()) {
-//                    Log.d("mPrivacy = true", Boolean.toString(preference.isEnabled()));
-//                    database1.child("politigram_users").child("user_" + StringToHash.getHex(Email)).child("profile_data").child("privacy").setValue(true);
-//                } else {
-//                    Log.d("mPrivacy = false", Boolean.toString(preference.isEnabled()));
-//                    database1.child("politigram_users").child("user_" + StringToHash.getHex(Email)).child("profile_data").child("privacy").setValue(false);
-//                }
-//
-//                return false;
-//            }
 
-//            @Override
-//            public boolean onPreferenceChange(Preference preference) {
-//                if(preference.is) {
-//                    Log.d("mPrivacy = true", Boolean.toString(preference.isEnabled()));
-//                    database1.child("politigram_users").child("user_" + StringToHash.getHex(Email)).child("profile_data").child("privacy").setValue(true);
-//                }else{
-//                    Log.d("mPrivacy = false", Boolean.toString(preference.isEnabled()));
-//                    database1.child("politigram_users").child("user_" + StringToHash.getHex(Email)).child("profile_data").child("privacy").setValue(false);
-//                }
-//                return false;
-//            }
-//        });
+                }
+                return true;
+            default:
+                return false;
+        }
 
-//        });
     }
 }

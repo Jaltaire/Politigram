@@ -87,6 +87,7 @@ import edu.dartmouth.cs.politigram.models.ClassifierEntry;
 import edu.dartmouth.cs.politigram.R;
 import edu.dartmouth.cs.politigram.activities.ClassifierHistoryActivity;
 import edu.dartmouth.cs.politigram.activities.ClassifierResultActivity;
+import edu.dartmouth.cs.politigram.utils.InternetConnectionTester;
 import edu.dartmouth.cs.politigram.utils.ReferenceVariables;
 import edu.dartmouth.cs.politigram.utils.StringToHash;
 
@@ -168,8 +169,13 @@ public class ClassifierFragment extends android.app.Fragment {
             @Override
             public void onClick(View view) {
 
-                if (!mAllowClassification) onSetProfilePicturePressed(view);
-                else classifyPhoto();
+                if (InternetConnectionTester.hasInternetConnection(getContext())) {
+                    if (!mAllowClassification) onSetProfilePicturePressed(view);
+                    else classifyPhoto();
+                }
+                else {
+                    Toast.makeText(getContext(), "No Internet connection. Cannot use classifier.", Toast.LENGTH_LONG).show();
+                }
 
             }
         });
@@ -178,8 +184,13 @@ public class ClassifierFragment extends android.app.Fragment {
             @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(getContext(), ClassifierHistoryActivity.class);
-                startActivity(intent);
+                if (InternetConnectionTester.hasInternetConnection(getContext())) {
+                    Intent intent = new Intent(getContext(), ClassifierHistoryActivity.class);
+                    startActivity(intent);
+                }
+                else {
+                    Toast.makeText(getContext(), "No Internet connection. Cannot view classifier history.", Toast.LENGTH_LONG).show();
+                }
             }
         });
 
@@ -760,6 +771,9 @@ public class ClassifierFragment extends android.app.Fragment {
 
         final Set<String> storedImageBytes = new HashSet<String>();
 
+        // Get all classifier history image entries. If the same image has already been classified for this user, don't add the classification result to history again.
+        // After a user gets the classifier results, we allow him/her to immediately reclassify the same image in case he/she wants to see the full classifier result again (i.e. with metadata stating that result was scaled with location).
+        // As such, since we expect some users will re-classify the same image, we intentionally avoid adding the same image to a classifier history multiple times.
         usersRef.child("user_" + StringToHash.getHex(LoginActivity.email)).child("classifier_results").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {

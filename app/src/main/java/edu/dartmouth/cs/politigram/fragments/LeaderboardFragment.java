@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -34,6 +35,7 @@ import edu.dartmouth.cs.politigram.adapters.BoardAdapter;
 import edu.dartmouth.cs.politigram.models.BoardObject;
 import edu.dartmouth.cs.politigram.R;
 import edu.dartmouth.cs.politigram.activities.MainActivity;
+import edu.dartmouth.cs.politigram.utils.InternetConnectionTester;
 
 // Fragment within MainActivity to control leaderboard aspects of Politigram.
 public class LeaderboardFragment extends Fragment {
@@ -57,23 +59,32 @@ public class LeaderboardFragment extends Fragment {
 
         final ListView listView = view.findViewById(R.id.board_listview);
 
-        DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        final String Email = mAuth.getCurrentUser().getEmail();
-        database1.child("politigram_users")
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        list = new ArrayList<>();
-                        list = createSortedListOfBoardObjects(dataSnapshot);
-                        final BoardAdapter adapter = new BoardAdapter(getActivity(), list);
-                        listView.setAdapter(adapter);
-                    }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
+        if (InternetConnectionTester.hasInternetConnection(getContext())) {
 
-                    }
-                });
+            DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
+            FirebaseAuth mAuth = FirebaseAuth.getInstance();
+            final String Email = mAuth.getCurrentUser().getEmail();
+            database1.child("politigram_users")
+                    .addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            list = new ArrayList<>();
+                            list = createSortedListOfBoardObjects(dataSnapshot);
+                            final BoardAdapter adapter = new BoardAdapter(getActivity(), list);
+                            listView.setAdapter(adapter);
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+
+        }
+
+        else {
+            Toast.makeText(getContext(), "No Internet connection. Cannot view leaderboard.", Toast.LENGTH_LONG).show();
+        }
 
 
     }

@@ -31,6 +31,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.face.Face;
@@ -54,6 +55,7 @@ import edu.dartmouth.cs.politigram.models.GameObject;
 import edu.dartmouth.cs.politigram.R;
 import edu.dartmouth.cs.politigram.activities.GameHistoryActivity;
 import edu.dartmouth.cs.politigram.activities.MainActivity;
+import edu.dartmouth.cs.politigram.utils.InternetConnectionTester;
 import edu.dartmouth.cs.politigram.utils.StringToHash;
 
 
@@ -103,45 +105,60 @@ public class GameFragment extends Fragment {
         goToGameHistory.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), GameHistoryActivity.class);
-                startActivity(intent);
-            }
-        });
-        DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        final String Email = mAuth.getCurrentUser().getEmail();
-        database1.child("politigram_users")
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        setupGame = new SetupGame();
-                        setupGame.execute(dataSnapshot);
-                        showProgress(true);
-                    }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                    }
-                });
-
-        showProgress(true);
-
-        leansLeftBtn.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.M)
-            @Override
-            public void onClick(View v) {
-                Clicked(0);
-
+                if (InternetConnectionTester.hasInternetConnection(getContext())) {
+                    Intent intent = new Intent(getActivity(), GameHistoryActivity.class);
+                    startActivity(intent);
+                }
+                else {
+                    Toast.makeText(getContext(), "No Internet connection. Cannot view game history.", Toast.LENGTH_LONG).show();
+                }
             }
         });
 
-        leansRightBtn.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.M)
-            @Override
-            public void onClick(View v) {
-                Clicked(1);
-            }
-        });
+        if (InternetConnectionTester.hasInternetConnection(getContext())) {
+            DatabaseReference database1 = FirebaseDatabase.getInstance().getReference();
+            FirebaseAuth mAuth = FirebaseAuth.getInstance();
+            final String Email = mAuth.getCurrentUser().getEmail();
+            database1.child("politigram_users")
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            setupGame = new SetupGame();
+                            setupGame.execute(dataSnapshot);
+                            showProgress(true);
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+
+            showProgress(true);
+
+            leansLeftBtn.setOnClickListener(new View.OnClickListener() {
+                @RequiresApi(api = Build.VERSION_CODES.M)
+                @Override
+                public void onClick(View v) {
+                    Clicked(0);
+
+                }
+            });
+
+            leansRightBtn.setOnClickListener(new View.OnClickListener() {
+                @RequiresApi(api = Build.VERSION_CODES.M)
+                @Override
+                public void onClick(View v) {
+                    Clicked(1);
+                }
+            });
+
+        }
+
+        else {
+            Toast.makeText(getContext(), "No Internet connection. Cannot play game.", Toast.LENGTH_LONG).show();
+        }
 
     }
 

@@ -56,6 +56,7 @@ import java.util.Set;
 import edu.dartmouth.cs.politigram.R;
 import edu.dartmouth.cs.politigram.fragments.PolitigramDialogFragment;
 import edu.dartmouth.cs.politigram.models.ProfileEntry;
+import edu.dartmouth.cs.politigram.utils.InternetConnectionTester;
 import edu.dartmouth.cs.politigram.utils.PoliticalLeaningConversion;
 import edu.dartmouth.cs.politigram.utils.StringToHash;
 
@@ -198,9 +199,17 @@ public class ProfileActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                if (confirmValidation()) {
-                    if (mCallerFlag == 0) registerUserOnFirebase();
-                    else if (mCallerFlag == 1) saveProfileToFirebase();
+                if (InternetConnectionTester.hasInternetConnection(getApplicationContext())) {
+
+                    if (confirmValidation()) {
+                        if (mCallerFlag == 0) registerUserOnFirebase();
+                        else if (mCallerFlag == 1) saveProfileToFirebase();
+                    }
+
+                }
+
+                else {
+                    Toast.makeText(getApplicationContext(), "No Internet connection. Cannot save profile at this time.", Toast.LENGTH_LONG).show();
                 }
             }
         });

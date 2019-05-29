@@ -31,6 +31,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import edu.dartmouth.cs.politigram.R;
+import edu.dartmouth.cs.politigram.utils.InternetConnectionTester;
 import edu.dartmouth.cs.politigram.utils.StringToHash;
 
 
@@ -118,9 +119,17 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
-                startActivityForResult(intent, REQUEST_CREDENTIALS);
-                finish();
+                if (InternetConnectionTester.hasInternetConnection(getApplicationContext())) {
+
+                    Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+                    startActivityForResult(intent, REQUEST_CREDENTIALS);
+                    finish();
+
+                }
+
+                else {
+                    Toast.makeText(getApplicationContext(), "No Internet connection. Cannot create a new account at this time.", Toast.LENGTH_LONG).show();
+                }
 
             }
         });
